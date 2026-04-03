@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taller de Práctica de Escritura</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #2b2b2b;
+            --text-light: #555555;
+            --accent-color: #E67E22; /* Naranja cálido */
+            --accent-hover: #D35400;
+            --border-color: #dddddd;
+            --success-color: #27AE60;
+            --warning-color: #F39C12;
+            --error-color: #C0392B;
+            --font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            padding: 40px;
+            /* Diseño flat, sin sombras complejas, apenas un borde sutil para enmarcar si fuera necesario */
+        }
+
+        h1, h2, h3 {
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--text-color);
+        }
+
+        p {
+            margin-bottom: 15px;
+            color: var(--text-light);
+            font-size: 1.1rem;
+        }
+
+        .pedagogical-notice {
+            background-color: #FFF9F2;
+            border-left: 4px solid var(--accent-color);
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .pedagogical-notice p {
+            margin-bottom: 0;
+            color: var(--text-color);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 500;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 12px 15px;
+            font-size: 1rem;
+            font-family: var(--font-family);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: #FAFAFA;
+            transition: border-color 0.3s;
+            resize: vertical;
+        }
+
+        input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            background-color: var(--bg-color);
+        }
+
+        textarea {
+            min-height: 120px;
+        }
+
+        button {
+            background-color: var(--accent-color);
+            color: #ffffff;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 500;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: var(--accent-hover);
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--accent-color);
+            border: 1px solid var(--accent-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: #FFF9F2;
+            color: var(--accent-hover);
+        }
+
+        .screen {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .exercise-header {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .instruction-box {
+            background-color: #F8F9FA;
+            padding: 20px;
+            border-radius: 4px;
+            margin-bottom: 25px;
+        }
+
+        .instruction-box .example {
+            margin-top: 15px;
+            font-style: italic;
+            color: var(--text-color);
+            border-top: 1px dashed var(--border-color);
+            padding-top: 15px;
+        }
+
+        .original-text {
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #ffffff;
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--text-color);
+        }
+
+        .hint-container {
+            margin-top: 15px;
+            display: none;
+            padding: 15px;
+            background-color: #FFF9F2;
+            border: 1px solid #FDEBD0;
+            border-radius: 4px;
+        }
+
+        .progress-indicator {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .feedback-message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            display: none;
+            font-weight: 500;
+        }
+
+        .feedback-logrado { background-color: #E8F8F5; color: var(--success-color); border: 1px solid #D1F2EB; }
+        .feedback-parcial { background-color: #FEF9E7; color: var(--warning-color); border: 1px solid #FCF3CF; }
+        .feedback-nologrado { background-color: #FDEDEC; color: var(--error-color); border: 1px solid #FADBD8; }
+        
+        .loading-overlay {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+            color: var(--accent-color);
+            font-weight: 500;
+        }
+
+        .site-footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <!-- Pantalla de Inicio -->
+        <div id="screen-home" class="screen active">
+            <h1>Taller de Escritura</h1>
+            
+            <div class="pedagogical-notice">
+                <p>El aprendizaje de la escritura es un proceso gradual y continuo. El error no representa un fracaso, sino una herramienta indispensable para identificar qué necesitamos ajustar. La claridad en la escritura se alcanza redactando, revisando y observando nuestras propias equivocaciones con atención. Este espacio está diseñado para que te tomes el tiempo de reescribir y mejorar cada oración.</p>
+            </div>
+
+            <form id="start-form">
+                <div class="form-group">
+                    <label for="curso">Curso</label>
+                    <input type="text" id="curso" placeholder="Ej: 1ro A" required autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="nombre">Nombre</label>
+                    <input type="text" id="nombre" required autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="apellido">Apellido</label>
+                    <input type="text" id="apellido" required autocomplete="off">
+                </div>
+                <button type="submit" id="btn-start" disabled>Comenzar las actividades</button>
+            </form>
+        </div>
+
+        <!-- Pantalla de Ejercicios -->
+        <div id="screen-exercise" class="screen">
+            <div class="exercise-header">
+                <span class="progress-indicator" id="progress-text">Ejercicio 1 de 3 | Instancia 1 de 3</span>
+                <h2 id="exercise-title">Título del Ejercicio</h2>
+            </div>
+
+            <div class="instruction-box">
+                <p id="exercise-instruction">Instrucción aquí.</p>
+                <div class="example" id="exercise-example">Ejemplo: "Texto incorrecto" -> "Texto correcto."</div>
+            </div>
+
+            <div class="original-text" id="text-to-fix">
+                Texto a corregir
+            </div>
+
+            <div class="form-group">
+                <label for="user-input">Escribí tu versión corregida aquí:</label>
+                <textarea id="user-input" placeholder="Comenzá a escribir..."></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <button type="button" id="btn-hint" class="btn-secondary">✨ Pista Inteligente</button>
+                <button type="button" id="btn-submit">✨ Evaluar con IA</button>
+            </div>
+
+            <div class="hint-container" id="hint-box">
+                <!-- La sugerencia se inserta aquí -->
+            </div>
+
+            <div id="feedback-box" class="feedback-message">
+                <!-- Mensaje de retroalimentación -->
+            </div>
+
+            <button type="button" id="btn-next" style="display: none; width: 100%; margin-top: 20px;">Continuar a la siguiente instancia</button>
+        </div>
+
+        <!-- Pantalla de Cierre -->
+        <div id="screen-end" class="screen">
+            <h1>Actividades finalizadas</h1>
+            <p>Has completado todas las instancias del taller. La revisión y la reescritura son los pilares fundamentales para lograr un texto claro y cohesivo.</p>
+            <p>Tus resultados están siendo procesados y enviados al sistema.</p>
+            
+            <div id="loading-indicator" class="loading-overlay" style="display: block;">
+                Enviando resultados...
+            </div>
+            
+            <div id="final-message" style="display: none; margin-top: 30px; padding: 20px; background-color: #E8F8F5; border: 1px solid #D1F2EB; color: #27AE60; font-weight: 500;">
+                Los datos se han guardado correctamente. Podés cerrar esta ventana.
+            </div>
+        </div>
+
+        <div class="site-footer">
+            Aplicación creada por el profesor Leonardo Torres con asistencia de Google Gemini.
+        </div>
+
+    </div>
+
+    <script>
+        // --- Estructura de Datos y Ejercicios ---
+        const exercises = [
+            {
+                title: "Ejercicio 1: Cohesión",
+                instruction: "Reescribí el fragmento evitando las repeticiones innecesarias. Podés utilizar sinónimos, pronombres o simplemente omitir el sujeto si por el contexto ya se comprende de quién o de qué se habla (elipsis).",
+                example: "Ejemplo: 'Juan fue a la biblioteca. Juan pidió un libro.' -> 'Juan fue a la biblioteca y pidió un libro.'",
+                instances: [
+                    {
+                        original: "El perro de mi vecino ladra mucho. El perro de mi vecino no me deja dormir en toda la noche.",
+                        expected: [
+                            "El perro de mi vecino ladra mucho y no me deja dormir en toda la noche.",
+                            "El perro de mi vecino ladra mucho, no me deja dormir en toda la noche.",
+                            "El perro de mi vecino ladra mucho; no me deja dormir en toda la noche."
+                        ],
+                        hint: "Notá cómo la frase 'El perro de mi vecino' se repite. Intentá unir ambas oraciones utilizando un conector (como 'y') u omitiendo la segunda mención."
+                    },
+                    {
+                        original: "La profesora explicó el tema. Los alumnos escucharon a la profesora con atención.",
+                        expected: [
+                            "La profesora explicó el tema y los alumnos la escucharon con atención.",
+                            "La profesora explicó el tema. Los alumnos la escucharon con atención.",
+                            "La profesora explicó el tema; los alumnos la escucharon con atención."
+                        ]
+                    },
+                    {
+                        original: "El museo tiene obras de arte muy antiguas. Las obras de arte atraen a muchos turistas.",
+                        expected: [
+                            "El museo tiene obras de arte muy antiguas que atraen a muchos turistas.",
+                            "El museo tiene obras de arte muy antiguas. Estas atraen a muchos turistas.",
+                            "El museo tiene obras de arte muy antiguas y atraen a muchos turistas."
+                        ]
+                    }
+                ]
+            },
+            {
+                title: "Ejercicio 2: Puntuación y Mayúsculas",
+                instruction: "El siguiente texto carece de signos de puntuación y mayúsculas. Reescribilo agregando los puntos, las comas necesarias y las mayúsculas al inicio de las oraciones y en los nombres propios.",
+                example: "Ejemplo: 'ayer vi a lucía en el parque estaba leyendo' -> 'Ayer vi a Lucía en el parque. Estaba leyendo.'",
+                instances: [
+                    {
+                        original: "mañana viajo a córdoba con mi hermano el pasaje salió muy caro",
+                        expected: [
+                            "Mañana viajo a Córdoba con mi hermano. El pasaje salió muy caro.",
+                            "Mañana viajo a Córdoba con mi hermano; el pasaje salió muy caro."
+                        ],
+                        hint: "Recordá que toda oración inicia con mayúscula. 'Córdoba' es un nombre propio. Separar ideas distintas requiere el uso del punto."
+                    },
+                    {
+                        original: "fui al mercado y compré peras manzanas bananas y uvas",
+                        expected: [
+                            "Fui al mercado y compré peras, manzanas, bananas y uvas.",
+                            "Fui al mercado y compre peras, manzanas, bananas y uvas."
+                        ]
+                    },
+                    {
+                        original: "martín que es médico atiende en ese hospital todos los días",
+                        expected: [
+                            "Martín, que es médico, atiende en ese hospital todos los días.",
+                            "Martín que es médico atiende en ese hospital todos los días." // Flexibilidad para evaluación
+                        ]
+                    }
+                ]
+            },
+            {
+                title: "Ejercicio 3: Actividad Combinada",
+                instruction: "En este fragmento encontrarás tanto repeticiones innecesarias como la ausencia total de puntuación y mayúsculas. Corregí todos los aspectos estructurales del texto.",
+                example: "Ejemplo: 'el auto se rompió el auto está en el taller de carlos' -> 'El auto se rompió y está en el taller de Carlos.'",
+                instances: [
+                    {
+                        original: "el sol brillaba con fuerza el sol calentaba la arena la arena quemaba los pies",
+                        expected: [
+                            "El sol brillaba con fuerza y calentaba la arena, que quemaba los pies.",
+                            "El sol brillaba con fuerza y calentaba la arena. Esta quemaba los pies.",
+                            "El sol brillaba con fuerza, calentaba la arena y esta quemaba los pies."
+                        ],
+                        hint: "Evitá repetir 'el sol' y 'la arena'. Establecé pausas con comas o puntos y no olvides las mayúsculas iniciales."
+                    },
+                    {
+                        original: "los estudiantes leyeron el libro los estudiantes debatieron sobre el libro en clase",
+                        expected: [
+                            "Los estudiantes leyeron el libro y debatieron sobre él en clase.",
+                            "Los estudiantes leyeron el libro y debatieron sobre este en clase.",
+                            "Los estudiantes leyeron el libro. Luego, debatieron sobre él en clase."
+                        ]
+                    },
+                    {
+                        original: "el río paraná es muy caudaloso el río paraná atraviesa varias provincias",
+                        expected: [
+                            "El río Paraná es muy caudaloso y atraviesa varias provincias.",
+                            "El río Paraná es muy caudaloso; atraviesa varias provincias.",
+                            "El río Paraná es muy caudaloso. Atraviesa varias provincias."
+                        ]
+                    }
+                ]
+            }
+        ];
+
+        // --- Estado de la Aplicación ---
+        const state = {
+            student: {
+                curso: '',
+                nombre: '',
+                apellido: ''
+            },
+            currentExerciseIndex: 0,
+            currentInstanceIndex: 0,
+            results: []
+        };
+
+        // --- Selectores del DOM ---
+        const form = document.getElementById('start-form');
+        const btnStart = document.getElementById('btn-start');
+        
+        // Pantallas
+        const screenHome = document.getElementById('screen-home');
+        const screenExercise = document.getElementById('screen-exercise');
+        const screenEnd = document.getElementById('screen-end');
+
+        // Elementos del Ejercicio
+        const progressText = document.getElementById('progress-text');
+        const exerciseTitle = document.getElementById('exercise-title');
+        const exerciseInstruction = document.getElementById('exercise-instruction');
+        const exerciseExample = document.getElementById('exercise-example');
+        const textToFix = document.getElementById('text-to-fix');
+        const userInput = document.getElementById('user-input');
+        const btnHint = document.getElementById('btn-hint');
+        const hintBox = document.getElementById('hint-box');
+        const btnSubmit = document.getElementById('btn-submit');
+        const feedbackBox = document.getElementById('feedback-box');
+        const btnNext = document.getElementById('btn-next');
+
+        // --- Configuración de Gemini API ---
+        const apiKey = "";
+        const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+        async function callGemini(systemInstruction, userPrompt, responseSchema = null) {
+            const payload = {
+                contents: [{ parts: [{ text: userPrompt }] }],
+                systemInstruction: { parts: [{ text: systemInstruction }] }
+            };
+
+            if (responseSchema) {
+                payload.generationConfig = {
+                    responseMimeType: "application/json",
+                    responseSchema: responseSchema
+                };
+            }
+
+            const options = {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            };
+
+            let delay = 1000;
+            for (let i = 0; i < 5; i++) {
+                try {
+                    const response = await fetch(geminiEndpoint, options);
+                    if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+                    const data = await response.json();
+                    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (!text) throw new Error("No se devolvió texto desde Gemini");
+                    return text;
+                } catch (error) {
+                    if (i === 4) throw error;
+                    await new Promise(res => setTimeout(res, delay));
+                    delay *= 2;
+                }
+            }
+        }
+
+        // --- Lógica de Validación Inicial ---
+        const validateForm = () => {
+            const c = document.getElementById('curso').value.trim();
+            const n = document.getElementById('nombre').value.trim();
+            const a = document.getElementById('apellido').value.trim();
+            btnStart.disabled = !(c && n && a);
+        };
+
+        document.getElementById('curso').addEventListener('input', validateForm);
+        document.getElementById('nombre').addEventListener('input', validateForm);
+        document.getElementById('apellido').addEventListener('input', validateForm);
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            state.student.curso = document.getElementById('curso').value.trim();
+            state.student.nombre = document.getElementById('nombre').value.trim();
+            state.student.apellido = document.getElementById('apellido').value.trim();
+            switchScreen(screenHome, screenExercise);
+            loadInstance();
+        });
+
+        // --- Funciones de Utilidad ---
+        const switchScreen = (hideObj, showObj) => {
+            hideObj.classList.remove('active');
+            showObj.classList.add('active');
+        };
+
+        // Algoritmo de distancia de Levenshtein para evaluar similitud de cadenas
+        const levenshtein = (a, b) => {
+            const matrix = [];
+            for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+            for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+
+            for (let i = 1; i <= b.length; i++) {
+                for (let j = 1; j <= a.length; j++) {
+                    if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                        matrix[i][j] = matrix[i - 1][j - 1];
+                    } else {
+                        matrix[i][j] = Math.min(
+                            matrix[i - 1][j - 1] + 1, // sustitución
+                            Math.min(matrix[i][j - 1] + 1, // inserción
+                            matrix[i - 1][j] + 1) // borrado
+                        );
+                    }
+                }
+            }
+            return matrix[b.length][a.length];
+        };
+
+        const calculateSimilarity = (str1, str2) => {
+            const s1 = str1.trim().replace(/\s+/g, ' ');
+            const s2 = str2.trim().replace(/\s+/g, ' ');
+            const distance = levenshtein(s1, s2);
+            const maxLength = Math.max(s1.length, s2.length);
+            if (maxLength === 0) return 100;
+            return ((maxLength - distance) / maxLength) * 100;
+        };
+
+        // --- Lógica del Ejercicio ---
+        const loadInstance = () => {
+            const exercise = exercises[state.currentExerciseIndex];
+            const instance = exercise.instances[state.currentInstanceIndex];
+
+            progressText.textContent = `Ejercicio ${state.currentExerciseIndex + 1} de ${exercises.length} | Instancia ${state.currentInstanceIndex + 1} de ${exercise.instances.length}`;
+            exerciseTitle.textContent = exercise.title;
+            exerciseInstruction.textContent = exercise.instruction;
+            exerciseExample.textContent = exercise.example;
+            textToFix.textContent = instance.original;
+            userInput.value = '';
+            
+            // Reiniciar UI
+            feedbackBox.style.display = 'none';
+            feedbackBox.className = 'feedback-message';
+            btnNext.style.display = 'none';
+            btnSubmit.style.display = 'block';
+            userInput.disabled = false;
+            hintBox.style.display = 'none';
+
+            // Habilitamos la Pista Inteligente en todas las instancias
+            btnHint.style.display = 'inline-block';
+            btnHint.textContent = '✨ Pista Inteligente';
+            btnHint.disabled = false;
+            btnSubmit.textContent = '✨ Evaluar con IA';
+            btnSubmit.disabled = false;
+        };
+
+        btnHint.addEventListener('click', async () => {
+            const text = userInput.value.trim();
+            const exercise = exercises[state.currentExerciseIndex];
+            const instance = exercise.instances[state.currentInstanceIndex];
+
+            btnHint.disabled = true;
+            btnHint.textContent = 'Generando pista...';
+            hintBox.style.display = 'block';
+            hintBox.textContent = 'Analizando tu texto... ✨';
+
+            const systemPrompt = "Sos un profesor de lengua de secundaria en Argentina muy empático y alentador. Tu objetivo es ayudar al alumno a corregir un texto sin darle la respuesta exacta.";
+            const userPrompt = `El alumno está realizando un ejercicio.
+Instrucción: "${exercise.instruction}"
+Texto original con errores: "${instance.original}"
+Lo que el alumno escribió hasta ahora: "${text || '(Aún no escribió nada)'}"
+Dale una pista muy breve (máximo 2 oraciones) usando voseo argentino para guiarlo sobre qué debe cambiar o revisar.`;
+
+            try {
+                const hint = await callGemini(systemPrompt, userPrompt);
+                hintBox.textContent = hint;
+            } catch (error) {
+                console.error(error);
+                // Fallback a la pista predeterminada si existe
+                hintBox.textContent = instance.hint || "Intentá leer la instrucción de nuevo y fijate en el ejemplo. ¡Vos podés!";
+            } finally {
+                btnHint.textContent = '✨ Pista Inteligente';
+                btnHint.disabled = false;
+            }
+        });
+
+        btnSubmit.addEventListener('click', async () => {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            const exercise = exercises[state.currentExerciseIndex];
+            const instance = exercise.instances[state.currentInstanceIndex];
+            
+            btnSubmit.disabled = true;
+            btnSubmit.textContent = 'Evaluando... ✨';
+            btnHint.style.display = 'none';
+
+            const systemPrompt = "Sos un profesor de lengua de secundaria en Argentina evaluando una actividad de reescritura. Sé empático pero riguroso.";
+            const userPrompt = `Evalúa la corrección de este texto.
+Instrucción: "${exercise.instruction}"
+Texto original con errores: "${instance.original}"
+Respuestas esperadas (ejemplos válidos): ${JSON.stringify(instance.expected)}
+Respuesta del alumno: "${text}"`;
+
+            const schema = {
+                type: "OBJECT",
+                properties: {
+                    status: { type: "STRING", description: "Debe ser estrictamente uno de: 'Logrado', 'Parcialmente logrado', 'No logrado'" },
+                    feedback: { type: "STRING", description: "Una devolución empática y constructiva usando voseo argentino (máximo 3 oraciones). Menciona puntualmente qué faltó corregir si es necesario." },
+                    score: { type: "INTEGER", description: "3 para Logrado, 2 para Parcialmente logrado, 1 para No logrado" }
+                },
+                required: ["status", "feedback", "score"]
+            };
+
+            let status = '';
+            let feedbackText = '';
+            let numericScore = 0;
+
+            try {
+                const resultText = await callGemini(systemPrompt, userPrompt, schema);
+                const result = JSON.parse(resultText);
+                status = result.status;
+                feedbackText = result.feedback;
+                numericScore = result.score;
+                
+                // Normalización de seguridad
+                if (!['Logrado', 'Parcialmente logrado', 'No logrado'].includes(status)) {
+                    throw new Error("Estado devuelto por el LLM inválido");
+                }
+            } catch (error) {
+                console.error("Error con Gemini API, usando evaluación local (fallback):", error);
+                
+                // --- Fallback Local (Levenshtein) ---
+                let maxSimilarity = 0;
+                instance.expected.forEach(exp => {
+                    const sim = calculateSimilarity(text.toLowerCase(), exp.toLowerCase());
+                    if (sim > maxSimilarity) maxSimilarity = sim;
+                });
+
+                if (maxSimilarity >= 85) {
+                    status = 'Logrado';
+                    numericScore = 3;
+                    feedbackText = '¡Excelente trabajo! Has resuelto correctamente las dificultades del texto.';
+                } else if (maxSimilarity >= 50) {
+                    status = 'Parcialmente logrado';
+                    numericScore = 2;
+                    feedbackText = 'Has logrado corregir varios aspectos, pero persisten omisiones estructurales o de puntuación menores. Es un buen avance.';
+                } else {
+                    status = 'No logrado';
+                    numericScore = 1;
+                    feedbackText = 'El texto ingresado presenta alteraciones incorrectas o mantiene la estructura original. Observá detenidamente el ejemplo de la consigna para la próxima vez.';
+                }
+            }
+
+            // Guardar resultado
+            state.results.push({
+                exerciseTitle: exercise.title,
+                instance: state.currentInstanceIndex + 1,
+                status: status,
+                score: numericScore
+            });
+
+            // Actualizar la caja de feedback
+            feedbackBox.className = 'feedback-message';
+            if (status === 'Logrado') feedbackBox.classList.add('feedback-logrado');
+            else if (status === 'Parcialmente logrado') feedbackBox.classList.add('feedback-parcial');
+            else feedbackBox.classList.add('feedback-nologrado');
+
+            feedbackBox.textContent = feedbackText;
+            feedbackBox.style.display = 'block';
+            
+            btnSubmit.style.display = 'none';
+            userInput.disabled = true;
+            btnNext.style.display = 'block';
+        });
+
+        btnNext.addEventListener('click', () => {
+            const currentExercise = exercises[state.currentExerciseIndex];
+            
+            // Avanzar instancia o ejercicio
+            if (state.currentInstanceIndex < currentExercise.instances.length - 1) {
+                state.currentInstanceIndex++;
+                loadInstance();
+            } else if (state.currentExerciseIndex < exercises.length - 1) {
+                state.currentExerciseIndex++;
+                state.currentInstanceIndex = 0;
+                loadInstance();
+            } else {
+                finishSession();
+            }
+        });
+
+        // --- Finalización y Envío de Datos ---
+        const finishSession = async () => {
+            switchScreen(screenExercise, screenEnd);
+            
+            // Calcular calificación promedio
+            const totalScore = state.results.reduce((acc, curr) => acc + curr.score, 0);
+            const avgScore = totalScore / state.results.length;
+            
+            let calificacionFinal = '';
+            if (avgScore >= 2.5) calificacionFinal = 'Logrado';
+            else if (avgScore >= 1.5) calificacionFinal = 'Parcialmente logrado';
+            else calificacionFinal = 'No logrado';
+
+            // Recopilar errores para el informe
+            const erroresDetectados = state.results
+                .filter(r => r.status !== 'Logrado')
+                .map(r => `Falla en ${r.exerciseTitle} (Instancia ${r.instance})`)
+                .join('; ');
+
+            const payload = {
+                curso: state.student.curso,
+                nombre: state.student.nombre,
+                apellido: state.student.apellido,
+                calificacion: calificacionFinal,
+                errores: erroresDetectados || "Ninguno. Resolución óptima."
+            };
+
+            const URL_APPS_SCRIPT = 'https://script.google.com/macros/s/AKfycbyhWLc41wxXH6ygul9ztPFOdL4MSGXuKkUVzR9T22gPK92EGKUpsScsHP53yXYbVbjY/exec';
+
+            try {
+                // Requerimiento estricto: fetch asíncrono, modo no-cors, application/json y payload exacto.
+                await fetch(URL_APPS_SCRIPT, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                // Al estar en no-cors, la respuesta será opaca, por lo que asumimos éxito si no lanza error de red.
+                document.getElementById('loading-indicator').style.display = 'none';
+                document.getElementById('final-message').style.display = 'block';
+
+            } catch (error) {
+                console.error("Error al enviar los datos:", error);
+                document.getElementById('loading-indicator').textContent = 'Se produjo un error al comunicar con el servidor. Por favor, avisá al docente.';
+                document.getElementById('loading-indicator').style.color = 'var(--error-color)';
+            }
+        };
+
+    </script>
+</body>
+</html>
