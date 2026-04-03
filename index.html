@@ -291,8 +291,8 @@
                 </div>
 
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <button type="button" id="btn-hint" class="btn-secondary">✨ Pista Inteligente</button>
-                    <button type="button" id="btn-submit">✨ Evaluar con IA</button>
+                    <button type="button" id="btn-hint" class="btn-secondary">✨ Solicitar pista pedagógica</button>
+                    <button type="button" id="btn-submit">✨ Evaluar respuesta</button>
                 </div>
 
                 <div class="hint-container" id="hint-box">
@@ -329,14 +329,22 @@
     </div>
 
     <script>
+        // --- Campos Semánticos para forzar variabilidad en la generación ---
+        const temasGeneracion = [
+            "la revolución de mayo", "el sistema solar", "las profundidades del océano", 
+            "la inteligencia artificial", "mitología griega", "ecología y reciclaje", 
+            "descubrimientos médicos", "arquitectura moderna", "la fauna patagónica", 
+            "la historia del cine", "la invención de la imprenta", "el ciclo del agua",
+            "las antiguas civilizaciones", "la música clásica", "los deportes olímpicos"
+        ];
+
         // --- Estructura de Datos y Definiciones Generativas ---
-        // Se añade la directiva 'promptRule' para instruir al LLM sobre cómo generar la instancia en tiempo real.
         const exercises = [
             {
                 title: "Ejercicio 1: Cohesión",
                 instruction: "Reescribí el fragmento evitando las repeticiones innecesarias. Podés utilizar sinónimos, pronombres o simplemente omitir el sujeto si por el contexto ya se comprende de quién o de qué se habla (elipsis).",
                 example: "Ejemplo: 'Juan fue a la biblioteca. Juan pidió un libro.' -> 'Juan fue a la biblioteca y pidió un libro.'",
-                promptRule: "Generá un texto de dos oraciones breves (15-20 palabras en total) que repita innecesariamente el sujeto o un objeto directo, forzando al alumno a usar elipsis, pronombres o sinónimos para unir ambas ideas. Usá vocabulario cotidiano o escolar. No uses ejemplos ya vistos.",
+                promptRule: "Generá un texto de dos oraciones breves (15-20 palabras en total) que repita de forma evidente e innecesaria el sujeto o un objeto directo, forzando al alumno a usar elipsis, pronombres o sinónimos. Estructura base: [Oración 1]. [Oración 2 que repite elementos de la 1].",
                 staticInstances: [
                     {
                         original: "El perro de mi vecino ladra mucho. El perro de mi vecino no me deja dormir en toda la noche.",
@@ -345,20 +353,6 @@
                             "El perro de mi vecino ladra mucho, no me deja dormir en toda la noche."
                         ],
                         hint: "Notá cómo la frase 'El perro de mi vecino' se repite. Intentá unir ambas oraciones."
-                    },
-                    {
-                        original: "La profesora explicó el tema. Los alumnos escucharon a la profesora con atención.",
-                        expected: [
-                            "La profesora explicó el tema y los alumnos la escucharon con atención."
-                        ],
-                        hint: "Evitá repetir 'la profesora'."
-                    },
-                    {
-                        original: "El museo tiene obras de arte muy antiguas. Las obras de arte atraen a muchos turistas.",
-                        expected: [
-                            "El museo tiene obras de arte muy antiguas que atraen a muchos turistas."
-                        ],
-                        hint: "Utilizá un pronombre relativo como 'que' o 'las cuales'."
                     }
                 ]
             },
@@ -366,7 +360,7 @@
                 title: "Ejercicio 2: Puntuación y Mayúsculas",
                 instruction: "El siguiente texto carece de signos de puntuación y mayúsculas. Reescribilo agregando los puntos, las comas necesarias y las mayúsculas al inicio de las oraciones y en los nombres propios.",
                 example: "Ejemplo: 'ayer vi a lucía en el parque estaba leyendo' -> 'Ayer vi a Lucía en el parque. Estaba leyendo.'",
-                promptRule: "Generá un texto breve (15-20 palabras) que no tenga ningún signo de puntuación (ni comas ni puntos) y esté escrito totalmente en minúsculas. Debe estar compuesto por dos oraciones separadas por punto y seguido, o incluir una enumeración o aposición. Debe incluir al menos un nombre propio o lugar.",
+                promptRule: "Generá un texto breve (15-20 palabras) totalmente en minúsculas y sin un solo signo de puntuación (sin comas ni puntos). Debe incluir un nombre propio o lugar geográfico y requerir obligatoriamente el uso de comas (ya sea para enumerar elementos o para aclarar información sobre un sustantivo) y un punto intermedio separando dos ideas.",
                 staticInstances: [
                     {
                         original: "mañana viajo a córdoba con mi hermano el pasaje salió muy caro",
@@ -374,28 +368,14 @@
                             "Mañana viajo a Córdoba con mi hermano. El pasaje salió muy caro."
                         ],
                         hint: "Recordá que toda oración inicia con mayúscula y separa ideas con punto."
-                    },
-                    {
-                        original: "fui al mercado y compré peras manzanas bananas y uvas",
-                        expected: [
-                            "Fui al mercado y compré peras, manzanas, bananas y uvas."
-                        ],
-                        hint: "Utilizá comas para separar los elementos de la enumeración."
-                    },
-                    {
-                        original: "martín que es médico atiende en ese hospital todos los días",
-                        expected: [
-                            "Martín, que es médico, atiende en ese hospital todos los días."
-                        ],
-                        hint: "Encerrá entre comas la información aclaratoria sobre Martín."
                     }
                 ]
             },
             {
                 title: "Ejercicio 3: Actividad Combinada",
-                instruction: "En este fragmento encontrarás tanto repeticiones innecesarias como la ausencia total de puntuación y mayúsculas. Corregí todos los aspectos estructurales del texto.",
+                instruction: "En este fragmento encontrarás repeticiones innecesarias y la ausencia total de puntuación y mayúsculas. Corregí todos los aspectos estructurales del texto.",
                 example: "Ejemplo: 'el auto se rompió el auto está en el taller de carlos' -> 'El auto se rompió y está en el taller de Carlos.'",
-                promptRule: "Generá un texto breve (15-25 palabras) totalmente en minúsculas, sin ningún signo de puntuación, y que además tenga una repetición evidente e innecesaria de un sustantivo u objeto. Debe requerir corrección de cohesión y puntuación simultáneamente.",
+                promptRule: "Generá un texto breve (15-25 palabras) en minúsculas y sin signos de puntuación. Además, debe contener una repetición evidente de un sujeto o sustantivo, requiriendo corrección de cohesión y reposición de signos de puntuación de forma simultánea.",
                 staticInstances: [
                     {
                         original: "el sol brillaba con fuerza el sol calentaba la arena la arena quemaba los pies",
@@ -403,20 +383,6 @@
                             "El sol brillaba con fuerza y calentaba la arena, que quemaba los pies."
                         ],
                         hint: "Evitá repetir 'el sol' y 'la arena'. Establecé pausas con comas o puntos."
-                    },
-                    {
-                        original: "los estudiantes leyeron el libro los estudiantes debatieron sobre el libro en clase",
-                        expected: [
-                            "Los estudiantes leyeron el libro y debatieron sobre él en clase."
-                        ],
-                        hint: "Uní las ideas omitiendo el segundo sujeto y usando un pronombre para el libro."
-                    },
-                    {
-                        original: "el río paraná es muy caudaloso el río paraná atraviesa varias provincias",
-                        expected: [
-                            "El río Paraná es muy caudaloso y atraviesa varias provincias."
-                        ],
-                        hint: "Recordá las mayúsculas en nombres propios y evitá la repetición del sujeto."
                     }
                 ]
             }
@@ -431,8 +397,8 @@
             },
             currentExerciseIndex: 0,
             currentInstanceIndex: 0,
-            instancesPerExercise: 3,
-            currentDynamicInstance: null, // Almacenará la instancia generada en tiempo real
+            instancesPerExercise: 2,
+            currentDynamicInstance: null,
             results: []
         };
 
@@ -440,12 +406,10 @@
         const form = document.getElementById('start-form');
         const btnStart = document.getElementById('btn-start');
         
-        // Pantallas
         const screenHome = document.getElementById('screen-home');
         const screenExercise = document.getElementById('screen-exercise');
         const screenEnd = document.getElementById('screen-end');
 
-        // Elementos del Ejercicio
         const progressText = document.getElementById('progress-text');
         const exerciseTitle = document.getElementById('exercise-title');
         const exerciseInstruction = document.getElementById('exercise-instruction');
@@ -503,17 +467,20 @@
 
         // --- Función Generadora de Ejercicios ---
         async function fetchDynamicInstance(exerciseDef) {
-            const systemPrompt = "Sos un profesor de lengua y literatura de secundaria en Argentina. Tu tarea técnica es generar datos para un ejercicio de reescritura, respondiendo estrictamente en el formato JSON solicitado.";
+            const temaSeleccionado = temasGeneracion[Math.floor(Math.random() * temasGeneracion.length)];
+            
+            const systemPrompt = "Sos un profesor de lengua y literatura de secundaria en Argentina. Tu tarea técnica es generar datos para un ejercicio de reescritura en estricto formato JSON.";
             const userPrompt = `Creá un ejercicio original para la siguiente consigna: "${exerciseDef.instruction}".
+            Tema semántico obligatorio para estructurar el texto: ${temaSeleccionado}.
             Regla de generación estricta: ${exerciseDef.promptRule}
-            Asegurate de que el texto original suene natural pero contenga los errores indicados de forma evidente. Generá también 2 o 3 versiones correctas esperadas y una pista empática usando voseo rioplatense.`;
+            Asegurate de que el texto original contenga los errores solicitados. Generá 2 opciones correctas posibles.`;
 
             const schema = {
                 type: "OBJECT",
                 properties: {
-                    original: { type: "STRING", description: "El texto con los errores estructurales o de puntuación." },
-                    expected: { type: "ARRAY", items: { type: "STRING" }, description: "Opciones de resolución correcta." },
-                    hint: { type: "STRING", description: "Pista breve y empática que guíe al alumno sin darle la respuesta directa." }
+                    original: { type: "STRING", description: "El texto con los errores estructurales o ausencia de puntuación." },
+                    expected: { type: "ARRAY", items: { type: "STRING" }, description: "Opciones de resolución correcta y perfectamente puntuadas." },
+                    hint: { type: "STRING", description: "Pista breve y académica (en voseo rioplatense) que guíe al alumno sobre qué revisar, sin resolver el ejercicio." }
                 },
                 required: ["original", "expected", "hint"]
             };
@@ -522,7 +489,7 @@
                 const responseText = await callGemini(systemPrompt, userPrompt, schema);
                 return JSON.parse(responseText);
             } catch (error) {
-                console.error("Fallo al generar la instancia dinámica. Se recurrirá a la instancia de respaldo estática.", error);
+                console.error("Fallo generativo. Se recurrirá a la instancia estática.", error);
                 return null;
             }
         }
@@ -548,7 +515,6 @@
             await loadInstance();
         });
 
-        // --- Funciones de Utilidad ---
         const switchScreen = (hideObj, showObj) => {
             hideObj.classList.remove('active');
             showObj.classList.add('active');
@@ -584,24 +550,19 @@
             return ((maxLength - distance) / maxLength) * 100;
         };
 
-        // --- Lógica del Ejercicio ---
         const loadInstance = async () => {
             const exercise = exercises[state.currentExerciseIndex];
             
-            // UI Update - Cargando
             progressText.textContent = `Ejercicio ${state.currentExerciseIndex + 1} de ${exercises.length} | Instancia ${state.currentInstanceIndex + 1} de ${state.instancesPerExercise}`;
             exerciseTitle.textContent = exercise.title;
             
             exerciseContent.style.display = 'none';
             generatingIndicator.style.display = 'block';
 
-            // Intentamos generar una instancia inédita. Si falla, utilizamos el fallback estático correspondiente al índice.
             let instanceData = await fetchDynamicInstance(exercise);
             
             if (!instanceData) {
-                // Mecanismo de fallback seguro limitando el índice a la longitud de la matriz estática
-                const staticIndex = state.currentInstanceIndex % exercise.staticInstances.length;
-                instanceData = exercise.staticInstances[staticIndex];
+                instanceData = exercise.staticInstances[0];
             }
 
             state.currentDynamicInstance = instanceData;
@@ -611,7 +572,6 @@
             textToFix.textContent = instanceData.original;
             userInput.value = '';
             
-            // Reiniciar UI
             generatingIndicator.style.display = 'none';
             exerciseContent.style.display = 'block';
             
@@ -623,9 +583,9 @@
             hintBox.style.display = 'none';
 
             btnHint.style.display = 'inline-block';
-            btnHint.textContent = '✨ Pista Inteligente';
+            btnHint.textContent = '✨ Solicitar pista pedagógica';
             btnHint.disabled = false;
-            btnSubmit.textContent = '✨ Evaluar con IA';
+            btnSubmit.textContent = '✨ Evaluar respuesta';
             btnSubmit.disabled = false;
         };
 
@@ -635,25 +595,24 @@
             const instance = state.currentDynamicInstance;
 
             btnHint.disabled = true;
-            btnHint.textContent = 'Generando pista...';
+            btnHint.textContent = '⏳ Procesando consulta...';
             hintBox.style.display = 'block';
-            hintBox.textContent = 'Analizando tu texto... ✨';
+            hintBox.textContent = 'Analizando variables sintácticas... 🔍';
 
-            const systemPrompt = "Sos un profesor de lengua de secundaria en Argentina muy empático y alentador. Tu objetivo es ayudar al alumno a corregir un texto sin darle la respuesta exacta.";
-            const userPrompt = `El alumno está realizando un ejercicio.
-Instrucción: "${exercise.instruction}"
-Texto original con errores: "${instance.original}"
-Lo que el alumno escribió hasta ahora: "${text || '(Aún no escribió nada)'}"
-Dale una pista muy breve (máximo 2 oraciones) usando voseo argentino para guiarlo sobre qué debe cambiar o revisar.`;
+            const systemPrompt = "Sos un profesor de lengua evaluando un ejercicio. Tu objetivo es guiar al alumno sin darle la respuesta directa. Mantené un tono académico y directo.";
+            const userPrompt = `Consigna: "${exercise.instruction}"
+Texto original: "${instance.original}"
+Progreso del alumno: "${text || '(Aún no escribió nada)'}"
+Redactá una pista técnica (máximo 2 oraciones en voseo rioplatense) indicando qué regla sintáctica u ortográfica debe aplicar.`;
 
             try {
                 const hint = await callGemini(systemPrompt, userPrompt);
                 hintBox.textContent = hint;
             } catch (error) {
                 console.error(error);
-                hintBox.textContent = instance.hint || "Intentá leer la instrucción de nuevo y fijate en el ejemplo. ¡Vos podés!";
+                hintBox.textContent = instance.hint || "Leé detenidamente la consigna y verificá la puntuación del ejemplo.";
             } finally {
-                btnHint.textContent = '✨ Pista Inteligente';
+                btnHint.textContent = '✨ Solicitar pista pedagógica';
                 btnHint.disabled = false;
             }
         });
@@ -666,31 +625,33 @@ Dale una pista muy breve (máximo 2 oraciones) usando voseo argentino para guiar
             const instance = state.currentDynamicInstance;
             
             btnSubmit.disabled = true;
-            btnSubmit.textContent = 'Evaluando...';
+            btnSubmit.textContent = '🧠 Ejecutando evaluación...';
             btnHint.style.display = 'none';
 
-            const systemPrompt = `Sos un profesor de Lengua y Literatura de secundaria en Argentina. Tu tarea es evaluar una actividad de reescritura con estricto rigor técnico.
-Reglas de calificación innegociables:
-- Logrado (3): El texto es perfecto. Resuelve la consigna, no tiene repeticiones, utiliza mayúsculas correctamente y la puntuación es impecable (incluyendo el punto final y la apertura y cierre de comas en aposiciones o frases explicativas).
-- Parcialmente logrado (2): Resuelve el problema principal, pero presenta omisiones de puntuación (falta el punto final, falta una coma en una aclaración), errores de mayúsculas o alteraciones menores.
-- No logrado (1): Mantiene la estructura defectuosa original o no cumple la consigna.
-Ortografía: Si el alumno comete errores ortográficos (tildes, confusión de letras), debés advertirlo explícitamente en la devolución, señalando la palabra incorrecta, independientemente del puntaje asignado.
-Tono: Utilizá voseo rioplatense. Sé directo, académico y preciso en la corrección. No seas complaciente si existen fallas técnicas.`;
-            const userPrompt = `Evalúa la corrección de este texto.
+            const systemPrompt = `Sos un algoritmo de evaluación sintáctica estricta para estudiantes de secundaria en Argentina.
+Reglas innegociables para puntuar:
+- Logrado (3): El texto no tiene errores. Obligatoriamente tiene punto final, las comas necesarias están en los lugares exactos, y las mayúsculas son correctas.
+- Parcialmente logrado (2): La reformulación principal está hecha, pero hay falencias ortotipográficas (falta el punto final, falta cerrar una coma explicativa, error de mayúscula).
+- No logrado (1): No cumple la consigna o agrava los errores.`;
+            
+            const userPrompt = `Verificá la respuesta del estudiante.
 Instrucción: "${exercise.instruction}"
-Texto original con errores: "${instance.original}"
-Respuestas esperadas (ejemplos válidos): ${JSON.stringify(instance.expected)}
-Respuesta del alumno: "${text}"`;
+Texto original: "${instance.original}"
+Respuesta esperada aproximada: ${JSON.stringify(instance.expected)}
+Texto ingresado por el estudiante: "${text}"`;
 
+            // El esquema exige una evaluación booleana componente por componente para forzar el escrutinio técnico.
             const schema = {
                 type: "OBJECT",
                 properties: {
-                    analisis_ortografico_y_puntuacion: { type: "STRING", description: "Evaluación interna paso a paso: 1. ¿Tiene punto final? 2. ¿Están todas las comas necesarias? 3. ¿Hay errores de ortografía o tildación?" },
-                    status: { type: "STRING", description: "Debe ser estrictamente uno de: 'Logrado', 'Parcialmente logrado', 'No logrado'" },
-                    feedback: { type: "STRING", description: "Devolución rigurosa en voseo. Señalá con precisión qué signo de puntuación faltó e indicá cualquier error ortográfico detectado." },
-                    score: { type: "INTEGER", description: "3 para Logrado, 2 para Parcialmente logrado, 1 para No logrado" }
+                    tiene_punto_final: { type: "BOOLEAN", description: "¿El texto del estudiante termina con punto final?" },
+                    tiene_comas_correctas: { type: "BOOLEAN", description: "¿Se utilizaron exactamente las comas requeridas según normativa?" },
+                    tiene_mayusculas_correctas: { type: "BOOLEAN", description: "¿Las mayúsculas iniciales y en nombres propios son precisas?" },
+                    status: { type: "STRING", description: "Estrictamente: 'Logrado', 'Parcialmente logrado', 'No logrado'." },
+                    feedback: { type: "STRING", description: "Devolución en voseo, académica y directa. Si falta un punto o una coma, indicalo explícitamente y remarcá su obligatoriedad." },
+                    score: { type: "INTEGER", description: "3, 2, o 1 según corresponda." }
                 },
-                required: ["analisis_ortografico_y_puntuacion", "status", "feedback", "score"]
+                required: ["tiene_punto_final", "tiene_comas_correctas", "tiene_mayusculas_correctas", "status", "feedback", "score"]
             };
 
             let status = '';
@@ -700,34 +661,41 @@ Respuesta del alumno: "${text}"`;
             try {
                 const resultText = await callGemini(systemPrompt, userPrompt, schema);
                 const result = JSON.parse(resultText);
+                
                 status = result.status;
                 feedbackText = result.feedback;
                 numericScore = result.score;
                 
-                if (!['Logrado', 'Parcialmente logrado', 'No logrado'].includes(status)) {
-                    throw new Error("Estado devuelto por el LLM inválido");
+                // Intervención de control algorítmico: Anulación de la complacencia del LLM.
+                // Si el modelo declara "Logrado" pero marcó falso en requerimientos de puntuación, se degrada forzosamente.
+                if (status === 'Logrado' && (!result.tiene_punto_final || !result.tiene_comas_correctas || !result.tiene_mayusculas_correctas)) {
+                    status = 'Parcialmente logrado';
+                    numericScore = 2;
+                    // Se anexa una advertencia sistémica a la devolución generada.
+                    feedbackText = "Aclaración técnica: " + feedbackText + " Recordá que para una evaluación óptima, no deben omitirse elementos de puntuación mínimos como el punto final o las comas.";
                 }
+
             } catch (error) {
-                console.error("Error con Gemini API, usando evaluación local (fallback):", error);
+                console.error("Error en API. Invocando evaluación algorítmica local:", error);
                 
                 let maxSimilarity = 0;
                 instance.expected.forEach(exp => {
-                    const sim = calculateSimilarity(text.toLowerCase(), exp.toLowerCase());
+                    const sim = calculateSimilarity(text, exp);
                     if (sim > maxSimilarity) maxSimilarity = sim;
                 });
 
-                if (maxSimilarity >= 95) {
+                if (maxSimilarity >= 98) { // Rigurosidad máxima en la comparación de caracteres
                     status = 'Logrado';
                     numericScore = 3;
-                    feedbackText = '¡Excelente trabajo! Has resuelto correctamente todas las dificultades del texto, incluyendo la puntuación exacta.';
-                } else if (maxSimilarity >= 60) {
+                    feedbackText = 'Resolución técnicamente correcta. Sintaxis y puntuación adecuadas.';
+                } else if (maxSimilarity >= 65) {
                     status = 'Parcialmente logrado';
                     numericScore = 2;
-                    feedbackText = 'Has logrado corregir la estructura principal, pero persisten omisiones de puntuación (como el punto final o comas necesarias) o errores menores.';
+                    feedbackText = 'La estructura base ha mejorado, pero persisten omisiones puntuales (revisá el punto final, la posición de las comas o la ortografía de las palabras).';
                 } else {
                     status = 'No logrado';
                     numericScore = 1;
-                    feedbackText = 'El texto ingresado presenta alteraciones incorrectas o mantiene la estructura original. Observá detenidamente la puntuación en el ejemplo de la consigna.';
+                    feedbackText = 'El texto no cumple los parámetros sintácticos requeridos por la consigna.';
                 }
             }
 
@@ -764,7 +732,6 @@ Respuesta del alumno: "${text}"`;
             }
         });
 
-        // --- Finalización y Envío de Datos ---
         const finishSession = async () => {
             switchScreen(screenExercise, screenEnd);
             
@@ -806,11 +773,10 @@ Respuesta del alumno: "${text}"`;
 
             } catch (error) {
                 console.error("Error al enviar los datos:", error);
-                document.getElementById('loading-indicator').textContent = 'Se produjo un error al comunicar con el servidor. Por favor, avisá al docente.';
+                document.getElementById('loading-indicator').textContent = 'Se produjo un error al comunicar con el servidor. Revisá la conexión de red.';
                 document.getElementById('loading-indicator').style.color = 'var(--error-color)';
             }
         };
-
     </script>
 </body>
 </html>
