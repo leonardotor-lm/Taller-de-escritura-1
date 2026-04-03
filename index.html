@@ -78,7 +78,7 @@
             font-size: 0.95rem;
         }
 
-        input[type="text"], textarea {
+        input[type="text"], textarea, select {
             width: 100%;
             padding: 12px 15px;
             font-size: 1rem;
@@ -90,7 +90,7 @@
             resize: vertical;
         }
 
-        input[type="text"]:focus, textarea:focus {
+        input[type="text"]:focus, textarea:focus, select:focus {
             outline: none;
             border-color: var(--accent-color);
             background-color: var(--bg-color);
@@ -250,7 +250,12 @@
             <form id="start-form">
                 <div class="form-group">
                     <label for="curso">Curso</label>
-                    <input type="text" id="curso" placeholder="Ej: 1ro A" required autocomplete="off">
+                    <select id="curso" required>
+                        <option value="" disabled selected>Seleccioná tu curso...</option>
+                        <option value="1ro">1ro</option>
+                        <option value="2do">2do</option>
+                        <option value="3ro">3ro</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label for="nombre">Nombre</label>
@@ -323,7 +328,8 @@
         </div>
 
         <div class="site-footer">
-            Aplicación creada por el profesor Leonardo Torres con asistencia de Google Gemini.
+            Aplicación creada por el profesor Leonardo Torres con asistencia de Google Gemini.<br>
+            Distribuida bajo licencia Creative Commons Atribución-NoComercial-CompartirIgual (CC BY-NC-SA 4.0).
         </div>
 
     </div>
@@ -353,6 +359,20 @@
                             "El perro de mi vecino ladra mucho, no me deja dormir en toda la noche."
                         ],
                         hint: "Notá cómo la frase 'El perro de mi vecino' se repite. Intentá unir ambas oraciones."
+                    },
+                    {
+                        original: "La profesora explicó el tema. Los alumnos escucharon a la profesora con atención.",
+                        expected: [
+                            "La profesora explicó el tema y los alumnos la escucharon con atención."
+                        ],
+                        hint: "Evitá repetir 'la profesora'."
+                    },
+                    {
+                        original: "El museo tiene obras de arte muy antiguas. Las obras de arte atraen a muchos turistas.",
+                        expected: [
+                            "El museo tiene obras de arte muy antiguas que atraen a muchos turistas."
+                        ],
+                        hint: "Utilizá un pronombre relativo como 'que' o 'las cuales'."
                     }
                 ]
             },
@@ -368,6 +388,20 @@
                             "Mañana viajo a Córdoba con mi hermano. El pasaje salió muy caro."
                         ],
                         hint: "Recordá que toda oración inicia con mayúscula y separa ideas con punto."
+                    },
+                    {
+                        original: "fui al mercado y compré peras manzanas bananas y uvas",
+                        expected: [
+                            "Fui al mercado y compré peras, manzanas, bananas y uvas."
+                        ],
+                        hint: "Utilizá comas para separar los elementos de la enumeración."
+                    },
+                    {
+                        original: "martín que es médico atiende en ese hospital todos los días",
+                        expected: [
+                            "Martín, que es médico, atiende en ese hospital todos los días."
+                        ],
+                        hint: "Encerrá entre comas la información aclaratoria sobre Martín."
                     }
                 ]
             },
@@ -383,6 +417,20 @@
                             "El sol brillaba con fuerza y calentaba la arena, que quemaba los pies."
                         ],
                         hint: "Evitá repetir 'el sol' y 'la arena'. Establecé pausas con comas o puntos."
+                    },
+                    {
+                        original: "los estudiantes leyeron el libro los estudiantes debatieron sobre el libro en clase",
+                        expected: [
+                            "Los estudiantes leyeron el libro y debatieron sobre él en clase."
+                        ],
+                        hint: "Uní las ideas omitiendo el segundo sujeto y usando un pronombre para el libro."
+                    },
+                    {
+                        original: "el río paraná es muy caudaloso el río paraná atraviesa varias provincias",
+                        expected: [
+                            "El río Paraná es muy caudaloso y atraviesa varias provincias."
+                        ],
+                        hint: "Recordá las mayúsculas en nombres propios y evitá la repetición del sujeto."
                     }
                 ]
             }
@@ -429,7 +477,7 @@
         const apiKey = "";
         const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
-        async function callGemini(systemInstruction, userPrompt, responseSchema = null) {
+        async function callGemini(systemInstruction, userPrompt, responseSchema = null, temperature = 0.7) {
             const payload = {
                 contents: [{ parts: [{ text: userPrompt }] }],
                 systemInstruction: { parts: [{ text: systemInstruction }] }
@@ -438,8 +486,11 @@
             if (responseSchema) {
                 payload.generationConfig = {
                     responseMimeType: "application/json",
-                    responseSchema: responseSchema
+                    responseSchema: responseSchema,
+                    temperature: temperature
                 };
+            } else {
+                payload.generationConfig = { temperature: temperature };
             }
 
             const options = {
@@ -468,10 +519,12 @@
         // --- Función Generadora de Ejercicios ---
         async function fetchDynamicInstance(exerciseDef) {
             const temaSeleccionado = temasGeneracion[Math.floor(Math.random() * temasGeneracion.length)];
+            const semillaAleatoria = Date.now();
             
             const systemPrompt = "Sos un profesor de lengua y literatura de secundaria en Argentina. Tu tarea técnica es generar datos para un ejercicio de reescritura en estricto formato JSON.";
             const userPrompt = `Creá un ejercicio original para la siguiente consigna: "${exerciseDef.instruction}".
             Tema semántico obligatorio para estructurar el texto: ${temaSeleccionado}.
+            Semilla de variabilidad algorítmica: ${semillaAleatoria}.
             Regla de generación estricta: ${exerciseDef.promptRule}
             Asegurate de que el texto original contenga los errores solicitados. Generá 2 opciones correctas posibles.`;
 
@@ -486,7 +539,7 @@
             };
 
             try {
-                const responseText = await callGemini(systemPrompt, userPrompt, schema);
+                const responseText = await callGemini(systemPrompt, userPrompt, schema, 1.2);
                 return JSON.parse(responseText);
             } catch (error) {
                 console.error("Fallo generativo. Se recurrirá a la instancia estática.", error);
@@ -502,7 +555,7 @@
             btnStart.disabled = !(c && n && a);
         };
 
-        document.getElementById('curso').addEventListener('input', validateForm);
+        document.getElementById('curso').addEventListener('change', validateForm);
         document.getElementById('nombre').addEventListener('input', validateForm);
         document.getElementById('apellido').addEventListener('input', validateForm);
 
@@ -562,7 +615,8 @@
             let instanceData = await fetchDynamicInstance(exercise);
             
             if (!instanceData) {
-                instanceData = exercise.staticInstances[0];
+                const pool = exercise.staticInstances;
+                instanceData = pool[Math.floor(Math.random() * pool.length)];
             }
 
             state.currentDynamicInstance = instanceData;
@@ -606,7 +660,7 @@ Progreso del alumno: "${text || '(Aún no escribió nada)'}"
 Redactá una pista técnica (máximo 2 oraciones en voseo rioplatense) indicando qué regla sintáctica u ortográfica debe aplicar.`;
 
             try {
-                const hint = await callGemini(systemPrompt, userPrompt);
+                const hint = await callGemini(systemPrompt, userPrompt, null, 0.7);
                 hintBox.textContent = hint;
             } catch (error) {
                 console.error(error);
@@ -659,7 +713,7 @@ Texto ingresado por el estudiante: "${text}"`;
             let numericScore = 0;
 
             try {
-                const resultText = await callGemini(systemPrompt, userPrompt, schema);
+                const resultText = await callGemini(systemPrompt, userPrompt, schema, 0.1);
                 const result = JSON.parse(resultText);
                 
                 status = result.status;
