@@ -9,7 +9,7 @@
             --bg-color: #ffffff;
             --text-color: #2b2b2b;
             --text-light: #555555;
-            --accent-color: #E67E22; /* Naranja cálido */
+            --accent-color: #E67E22;
             --accent-hover: #D35400;
             --border-color: #dddddd;
             --success-color: #27AE60;
@@ -40,7 +40,6 @@
             width: 100%;
             max-width: 800px;
             padding: 40px;
-            /* Diseño flat, sin sombras complejas, apenas un borde sutil para enmarcar si fuera necesario */
         }
 
         h1, h2, h3 {
@@ -215,6 +214,10 @@
             margin-top: 20px;
             color: var(--accent-color);
             font-weight: 500;
+            padding: 30px;
+            background-color: #FAFAFA;
+            border-radius: 4px;
+            border: 1px dashed var(--border-color);
         }
 
         .site-footer {
@@ -224,6 +227,11 @@
             border-top: 1px solid var(--border-color);
             font-size: 0.85rem;
             color: var(--text-light);
+        }
+        
+        /* Contenedor del contenido principal del ejercicio para poder ocultarlo mientras carga */
+        #exercise-content {
+            display: none;
         }
     </style>
 </head>
@@ -262,35 +270,41 @@
                 <span class="progress-indicator" id="progress-text">Ejercicio 1 de 3 | Instancia 1 de 3</span>
                 <h2 id="exercise-title">Título del Ejercicio</h2>
             </div>
-
-            <div class="instruction-box">
-                <p id="exercise-instruction">Instrucción aquí.</p>
-                <div class="example" id="exercise-example">Ejemplo: "Texto incorrecto" -> "Texto correcto."</div>
+            
+            <div id="generating-indicator" class="loading-overlay">
+                Generando una nueva oración inédita para este ejercicio...
             </div>
 
-            <div class="original-text" id="text-to-fix">
-                Texto a corregir
-            </div>
+            <div id="exercise-content">
+                <div class="instruction-box">
+                    <p id="exercise-instruction">Instrucción aquí.</p>
+                    <div class="example" id="exercise-example">Ejemplo: "Texto incorrecto" -> "Texto correcto."</div>
+                </div>
 
-            <div class="form-group">
-                <label for="user-input">Escribí tu versión corregida aquí:</label>
-                <textarea id="user-input" placeholder="Comenzá a escribir..."></textarea>
-            </div>
+                <div class="original-text" id="text-to-fix">
+                    Texto a corregir
+                </div>
 
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <button type="button" id="btn-hint" class="btn-secondary">✨ Pista Inteligente</button>
-                <button type="button" id="btn-submit">✨ Evaluar con IA</button>
-            </div>
+                <div class="form-group">
+                    <label for="user-input">Escribí tu versión corregida aquí:</label>
+                    <textarea id="user-input" placeholder="Comenzá a escribir..."></textarea>
+                </div>
 
-            <div class="hint-container" id="hint-box">
-                <!-- La sugerencia se inserta aquí -->
-            </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <button type="button" id="btn-hint" class="btn-secondary">✨ Pista Inteligente</button>
+                    <button type="button" id="btn-submit">✨ Evaluar con IA</button>
+                </div>
 
-            <div id="feedback-box" class="feedback-message">
-                <!-- Mensaje de retroalimentación -->
-            </div>
+                <div class="hint-container" id="hint-box">
+                    <!-- La sugerencia se inserta aquí -->
+                </div>
 
-            <button type="button" id="btn-next" style="display: none; width: 100%; margin-top: 20px;">Continuar a la siguiente instancia</button>
+                <div id="feedback-box" class="feedback-message">
+                    <!-- Mensaje de retroalimentación -->
+                </div>
+
+                <button type="button" id="btn-next" style="display: none; width: 100%; margin-top: 20px;">Continuar a la siguiente instancia</button>
+            </div>
         </div>
 
         <!-- Pantalla de Cierre -->
@@ -315,37 +329,36 @@
     </div>
 
     <script>
-        // --- Estructura de Datos y Ejercicios ---
+        // --- Estructura de Datos y Definiciones Generativas ---
+        // Se añade la directiva 'promptRule' para instruir al LLM sobre cómo generar la instancia en tiempo real.
         const exercises = [
             {
                 title: "Ejercicio 1: Cohesión",
                 instruction: "Reescribí el fragmento evitando las repeticiones innecesarias. Podés utilizar sinónimos, pronombres o simplemente omitir el sujeto si por el contexto ya se comprende de quién o de qué se habla (elipsis).",
                 example: "Ejemplo: 'Juan fue a la biblioteca. Juan pidió un libro.' -> 'Juan fue a la biblioteca y pidió un libro.'",
-                instances: [
+                promptRule: "Generá un texto de dos oraciones breves (15-20 palabras en total) que repita innecesariamente el sujeto o un objeto directo, forzando al alumno a usar elipsis, pronombres o sinónimos para unir ambas ideas. Usá vocabulario cotidiano o escolar. No uses ejemplos ya vistos.",
+                staticInstances: [
                     {
                         original: "El perro de mi vecino ladra mucho. El perro de mi vecino no me deja dormir en toda la noche.",
                         expected: [
                             "El perro de mi vecino ladra mucho y no me deja dormir en toda la noche.",
-                            "El perro de mi vecino ladra mucho, no me deja dormir en toda la noche.",
-                            "El perro de mi vecino ladra mucho; no me deja dormir en toda la noche."
+                            "El perro de mi vecino ladra mucho, no me deja dormir en toda la noche."
                         ],
-                        hint: "Notá cómo la frase 'El perro de mi vecino' se repite. Intentá unir ambas oraciones utilizando un conector (como 'y') u omitiendo la segunda mención."
+                        hint: "Notá cómo la frase 'El perro de mi vecino' se repite. Intentá unir ambas oraciones."
                     },
                     {
                         original: "La profesora explicó el tema. Los alumnos escucharon a la profesora con atención.",
                         expected: [
-                            "La profesora explicó el tema y los alumnos la escucharon con atención.",
-                            "La profesora explicó el tema. Los alumnos la escucharon con atención.",
-                            "La profesora explicó el tema; los alumnos la escucharon con atención."
-                        ]
+                            "La profesora explicó el tema y los alumnos la escucharon con atención."
+                        ],
+                        hint: "Evitá repetir 'la profesora'."
                     },
                     {
                         original: "El museo tiene obras de arte muy antiguas. Las obras de arte atraen a muchos turistas.",
                         expected: [
-                            "El museo tiene obras de arte muy antiguas que atraen a muchos turistas.",
-                            "El museo tiene obras de arte muy antiguas. Estas atraen a muchos turistas.",
-                            "El museo tiene obras de arte muy antiguas y atraen a muchos turistas."
-                        ]
+                            "El museo tiene obras de arte muy antiguas que atraen a muchos turistas."
+                        ],
+                        hint: "Utilizá un pronombre relativo como 'que' o 'las cuales'."
                     }
                 ]
             },
@@ -353,28 +366,28 @@
                 title: "Ejercicio 2: Puntuación y Mayúsculas",
                 instruction: "El siguiente texto carece de signos de puntuación y mayúsculas. Reescribilo agregando los puntos, las comas necesarias y las mayúsculas al inicio de las oraciones y en los nombres propios.",
                 example: "Ejemplo: 'ayer vi a lucía en el parque estaba leyendo' -> 'Ayer vi a Lucía en el parque. Estaba leyendo.'",
-                instances: [
+                promptRule: "Generá un texto breve (15-20 palabras) que no tenga ningún signo de puntuación (ni comas ni puntos) y esté escrito totalmente en minúsculas. Debe estar compuesto por dos oraciones separadas por punto y seguido, o incluir una enumeración o aposición. Debe incluir al menos un nombre propio o lugar.",
+                staticInstances: [
                     {
                         original: "mañana viajo a córdoba con mi hermano el pasaje salió muy caro",
                         expected: [
-                            "Mañana viajo a Córdoba con mi hermano. El pasaje salió muy caro.",
-                            "Mañana viajo a Córdoba con mi hermano; el pasaje salió muy caro."
+                            "Mañana viajo a Córdoba con mi hermano. El pasaje salió muy caro."
                         ],
-                        hint: "Recordá que toda oración inicia con mayúscula. 'Córdoba' es un nombre propio. Separar ideas distintas requiere el uso del punto."
+                        hint: "Recordá que toda oración inicia con mayúscula y separa ideas con punto."
                     },
                     {
                         original: "fui al mercado y compré peras manzanas bananas y uvas",
                         expected: [
-                            "Fui al mercado y compré peras, manzanas, bananas y uvas.",
-                            "Fui al mercado y compre peras, manzanas, bananas y uvas."
-                        ]
+                            "Fui al mercado y compré peras, manzanas, bananas y uvas."
+                        ],
+                        hint: "Utilizá comas para separar los elementos de la enumeración."
                     },
                     {
                         original: "martín que es médico atiende en ese hospital todos los días",
                         expected: [
-                            "Martín, que es médico, atiende en ese hospital todos los días.",
-                            "Martín que es médico atiende en ese hospital todos los días." // Flexibilidad para evaluación
-                        ]
+                            "Martín, que es médico, atiende en ese hospital todos los días."
+                        ],
+                        hint: "Encerrá entre comas la información aclaratoria sobre Martín."
                     }
                 ]
             },
@@ -382,31 +395,28 @@
                 title: "Ejercicio 3: Actividad Combinada",
                 instruction: "En este fragmento encontrarás tanto repeticiones innecesarias como la ausencia total de puntuación y mayúsculas. Corregí todos los aspectos estructurales del texto.",
                 example: "Ejemplo: 'el auto se rompió el auto está en el taller de carlos' -> 'El auto se rompió y está en el taller de Carlos.'",
-                instances: [
+                promptRule: "Generá un texto breve (15-25 palabras) totalmente en minúsculas, sin ningún signo de puntuación, y que además tenga una repetición evidente e innecesaria de un sustantivo u objeto. Debe requerir corrección de cohesión y puntuación simultáneamente.",
+                staticInstances: [
                     {
                         original: "el sol brillaba con fuerza el sol calentaba la arena la arena quemaba los pies",
                         expected: [
-                            "El sol brillaba con fuerza y calentaba la arena, que quemaba los pies.",
-                            "El sol brillaba con fuerza y calentaba la arena. Esta quemaba los pies.",
-                            "El sol brillaba con fuerza, calentaba la arena y esta quemaba los pies."
+                            "El sol brillaba con fuerza y calentaba la arena, que quemaba los pies."
                         ],
-                        hint: "Evitá repetir 'el sol' y 'la arena'. Establecé pausas con comas o puntos y no olvides las mayúsculas iniciales."
+                        hint: "Evitá repetir 'el sol' y 'la arena'. Establecé pausas con comas o puntos."
                     },
                     {
                         original: "los estudiantes leyeron el libro los estudiantes debatieron sobre el libro en clase",
                         expected: [
-                            "Los estudiantes leyeron el libro y debatieron sobre él en clase.",
-                            "Los estudiantes leyeron el libro y debatieron sobre este en clase.",
-                            "Los estudiantes leyeron el libro. Luego, debatieron sobre él en clase."
-                        ]
+                            "Los estudiantes leyeron el libro y debatieron sobre él en clase."
+                        ],
+                        hint: "Uní las ideas omitiendo el segundo sujeto y usando un pronombre para el libro."
                     },
                     {
                         original: "el río paraná es muy caudaloso el río paraná atraviesa varias provincias",
                         expected: [
-                            "El río Paraná es muy caudaloso y atraviesa varias provincias.",
-                            "El río Paraná es muy caudaloso; atraviesa varias provincias.",
-                            "El río Paraná es muy caudaloso. Atraviesa varias provincias."
-                        ]
+                            "El río Paraná es muy caudaloso y atraviesa varias provincias."
+                        ],
+                        hint: "Recordá las mayúsculas en nombres propios y evitá la repetición del sujeto."
                     }
                 ]
             }
@@ -421,6 +431,8 @@
             },
             currentExerciseIndex: 0,
             currentInstanceIndex: 0,
+            instancesPerExercise: 3,
+            currentDynamicInstance: null, // Almacenará la instancia generada en tiempo real
             results: []
         };
 
@@ -438,6 +450,9 @@
         const exerciseTitle = document.getElementById('exercise-title');
         const exerciseInstruction = document.getElementById('exercise-instruction');
         const exerciseExample = document.getElementById('exercise-example');
+        const exerciseContent = document.getElementById('exercise-content');
+        const generatingIndicator = document.getElementById('generating-indicator');
+        
         const textToFix = document.getElementById('text-to-fix');
         const userInput = document.getElementById('user-input');
         const btnHint = document.getElementById('btn-hint');
@@ -486,6 +501,32 @@
             }
         }
 
+        // --- Función Generadora de Ejercicios ---
+        async function fetchDynamicInstance(exerciseDef) {
+            const systemPrompt = "Sos un profesor de lengua y literatura de secundaria en Argentina. Tu tarea técnica es generar datos para un ejercicio de reescritura, respondiendo estrictamente en el formato JSON solicitado.";
+            const userPrompt = `Creá un ejercicio original para la siguiente consigna: "${exerciseDef.instruction}".
+            Regla de generación estricta: ${exerciseDef.promptRule}
+            Asegurate de que el texto original suene natural pero contenga los errores indicados de forma evidente. Generá también 2 o 3 versiones correctas esperadas y una pista empática usando voseo rioplatense.`;
+
+            const schema = {
+                type: "OBJECT",
+                properties: {
+                    original: { type: "STRING", description: "El texto con los errores estructurales o de puntuación." },
+                    expected: { type: "ARRAY", items: { type: "STRING" }, description: "Opciones de resolución correcta." },
+                    hint: { type: "STRING", description: "Pista breve y empática que guíe al alumno sin darle la respuesta directa." }
+                },
+                required: ["original", "expected", "hint"]
+            };
+
+            try {
+                const responseText = await callGemini(systemPrompt, userPrompt, schema);
+                return JSON.parse(responseText);
+            } catch (error) {
+                console.error("Fallo al generar la instancia dinámica. Se recurrirá a la instancia de respaldo estática.", error);
+                return null;
+            }
+        }
+
         // --- Lógica de Validación Inicial ---
         const validateForm = () => {
             const c = document.getElementById('curso').value.trim();
@@ -498,13 +539,13 @@
         document.getElementById('nombre').addEventListener('input', validateForm);
         document.getElementById('apellido').addEventListener('input', validateForm);
 
-        form.addEventListener('submit', (e) => {
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
             state.student.curso = document.getElementById('curso').value.trim();
             state.student.nombre = document.getElementById('nombre').value.trim();
             state.student.apellido = document.getElementById('apellido').value.trim();
             switchScreen(screenHome, screenExercise);
-            loadInstance();
+            await loadInstance();
         });
 
         // --- Funciones de Utilidad ---
@@ -513,7 +554,6 @@
             showObj.classList.add('active');
         };
 
-        // Algoritmo de distancia de Levenshtein para evaluar similitud de cadenas
         const levenshtein = (a, b) => {
             const matrix = [];
             for (let i = 0; i <= b.length; i++) matrix[i] = [i];
@@ -525,9 +565,9 @@
                         matrix[i][j] = matrix[i - 1][j - 1];
                     } else {
                         matrix[i][j] = Math.min(
-                            matrix[i - 1][j - 1] + 1, // sustitución
-                            Math.min(matrix[i][j - 1] + 1, // inserción
-                            matrix[i - 1][j] + 1) // borrado
+                            matrix[i - 1][j - 1] + 1,
+                            Math.min(matrix[i][j - 1] + 1,
+                            matrix[i - 1][j] + 1)
                         );
                     }
                 }
@@ -545,18 +585,36 @@
         };
 
         // --- Lógica del Ejercicio ---
-        const loadInstance = () => {
+        const loadInstance = async () => {
             const exercise = exercises[state.currentExerciseIndex];
-            const instance = exercise.instances[state.currentInstanceIndex];
-
-            progressText.textContent = `Ejercicio ${state.currentExerciseIndex + 1} de ${exercises.length} | Instancia ${state.currentInstanceIndex + 1} de ${exercise.instances.length}`;
+            
+            // UI Update - Cargando
+            progressText.textContent = `Ejercicio ${state.currentExerciseIndex + 1} de ${exercises.length} | Instancia ${state.currentInstanceIndex + 1} de ${state.instancesPerExercise}`;
             exerciseTitle.textContent = exercise.title;
+            
+            exerciseContent.style.display = 'none';
+            generatingIndicator.style.display = 'block';
+
+            // Intentamos generar una instancia inédita. Si falla, utilizamos el fallback estático correspondiente al índice.
+            let instanceData = await fetchDynamicInstance(exercise);
+            
+            if (!instanceData) {
+                // Mecanismo de fallback seguro limitando el índice a la longitud de la matriz estática
+                const staticIndex = state.currentInstanceIndex % exercise.staticInstances.length;
+                instanceData = exercise.staticInstances[staticIndex];
+            }
+
+            state.currentDynamicInstance = instanceData;
+
             exerciseInstruction.textContent = exercise.instruction;
             exerciseExample.textContent = exercise.example;
-            textToFix.textContent = instance.original;
+            textToFix.textContent = instanceData.original;
             userInput.value = '';
             
             // Reiniciar UI
+            generatingIndicator.style.display = 'none';
+            exerciseContent.style.display = 'block';
+            
             feedbackBox.style.display = 'none';
             feedbackBox.className = 'feedback-message';
             btnNext.style.display = 'none';
@@ -564,7 +622,6 @@
             userInput.disabled = false;
             hintBox.style.display = 'none';
 
-            // Habilitamos la Pista Inteligente en todas las instancias
             btnHint.style.display = 'inline-block';
             btnHint.textContent = '✨ Pista Inteligente';
             btnHint.disabled = false;
@@ -575,7 +632,7 @@
         btnHint.addEventListener('click', async () => {
             const text = userInput.value.trim();
             const exercise = exercises[state.currentExerciseIndex];
-            const instance = exercise.instances[state.currentInstanceIndex];
+            const instance = state.currentDynamicInstance;
 
             btnHint.disabled = true;
             btnHint.textContent = 'Generando pista...';
@@ -594,7 +651,6 @@ Dale una pista muy breve (máximo 2 oraciones) usando voseo argentino para guiar
                 hintBox.textContent = hint;
             } catch (error) {
                 console.error(error);
-                // Fallback a la pista predeterminada si existe
                 hintBox.textContent = instance.hint || "Intentá leer la instrucción de nuevo y fijate en el ejemplo. ¡Vos podés!";
             } finally {
                 btnHint.textContent = '✨ Pista Inteligente';
@@ -607,13 +663,19 @@ Dale una pista muy breve (máximo 2 oraciones) usando voseo argentino para guiar
             if (!text) return;
 
             const exercise = exercises[state.currentExerciseIndex];
-            const instance = exercise.instances[state.currentInstanceIndex];
+            const instance = state.currentDynamicInstance;
             
             btnSubmit.disabled = true;
-            btnSubmit.textContent = 'Evaluando... ✨';
+            btnSubmit.textContent = 'Evaluando...';
             btnHint.style.display = 'none';
 
-            const systemPrompt = "Sos un profesor de lengua de secundaria en Argentina evaluando una actividad de reescritura. Sé empático pero riguroso.";
+            const systemPrompt = `Sos un profesor de Lengua y Literatura de secundaria en Argentina. Tu tarea es evaluar una actividad de reescritura con estricto rigor técnico.
+Reglas de calificación innegociables:
+- Logrado (3): El texto es perfecto. Resuelve la consigna, no tiene repeticiones, utiliza mayúsculas correctamente y la puntuación es impecable (incluyendo el punto final y la apertura y cierre de comas en aposiciones o frases explicativas).
+- Parcialmente logrado (2): Resuelve el problema principal, pero presenta omisiones de puntuación (falta el punto final, falta una coma en una aclaración), errores de mayúsculas o alteraciones menores.
+- No logrado (1): Mantiene la estructura defectuosa original o no cumple la consigna.
+Ortografía: Si el alumno comete errores ortográficos (tildes, confusión de letras), debés advertirlo explícitamente en la devolución, señalando la palabra incorrecta, independientemente del puntaje asignado.
+Tono: Utilizá voseo rioplatense. Sé directo, académico y preciso en la corrección. No seas complaciente si existen fallas técnicas.`;
             const userPrompt = `Evalúa la corrección de este texto.
 Instrucción: "${exercise.instruction}"
 Texto original con errores: "${instance.original}"
@@ -623,11 +685,12 @@ Respuesta del alumno: "${text}"`;
             const schema = {
                 type: "OBJECT",
                 properties: {
+                    analisis_ortografico_y_puntuacion: { type: "STRING", description: "Evaluación interna paso a paso: 1. ¿Tiene punto final? 2. ¿Están todas las comas necesarias? 3. ¿Hay errores de ortografía o tildación?" },
                     status: { type: "STRING", description: "Debe ser estrictamente uno de: 'Logrado', 'Parcialmente logrado', 'No logrado'" },
-                    feedback: { type: "STRING", description: "Una devolución empática y constructiva usando voseo argentino (máximo 3 oraciones). Menciona puntualmente qué faltó corregir si es necesario." },
+                    feedback: { type: "STRING", description: "Devolución rigurosa en voseo. Señalá con precisión qué signo de puntuación faltó e indicá cualquier error ortográfico detectado." },
                     score: { type: "INTEGER", description: "3 para Logrado, 2 para Parcialmente logrado, 1 para No logrado" }
                 },
-                required: ["status", "feedback", "score"]
+                required: ["analisis_ortografico_y_puntuacion", "status", "feedback", "score"]
             };
 
             let status = '';
@@ -641,36 +704,33 @@ Respuesta del alumno: "${text}"`;
                 feedbackText = result.feedback;
                 numericScore = result.score;
                 
-                // Normalización de seguridad
                 if (!['Logrado', 'Parcialmente logrado', 'No logrado'].includes(status)) {
                     throw new Error("Estado devuelto por el LLM inválido");
                 }
             } catch (error) {
                 console.error("Error con Gemini API, usando evaluación local (fallback):", error);
                 
-                // --- Fallback Local (Levenshtein) ---
                 let maxSimilarity = 0;
                 instance.expected.forEach(exp => {
                     const sim = calculateSimilarity(text.toLowerCase(), exp.toLowerCase());
                     if (sim > maxSimilarity) maxSimilarity = sim;
                 });
 
-                if (maxSimilarity >= 85) {
+                if (maxSimilarity >= 95) {
                     status = 'Logrado';
                     numericScore = 3;
-                    feedbackText = '¡Excelente trabajo! Has resuelto correctamente las dificultades del texto.';
-                } else if (maxSimilarity >= 50) {
+                    feedbackText = '¡Excelente trabajo! Has resuelto correctamente todas las dificultades del texto, incluyendo la puntuación exacta.';
+                } else if (maxSimilarity >= 60) {
                     status = 'Parcialmente logrado';
                     numericScore = 2;
-                    feedbackText = 'Has logrado corregir varios aspectos, pero persisten omisiones estructurales o de puntuación menores. Es un buen avance.';
+                    feedbackText = 'Has logrado corregir la estructura principal, pero persisten omisiones de puntuación (como el punto final o comas necesarias) o errores menores.';
                 } else {
                     status = 'No logrado';
                     numericScore = 1;
-                    feedbackText = 'El texto ingresado presenta alteraciones incorrectas o mantiene la estructura original. Observá detenidamente el ejemplo de la consigna para la próxima vez.';
+                    feedbackText = 'El texto ingresado presenta alteraciones incorrectas o mantiene la estructura original. Observá detenidamente la puntuación en el ejemplo de la consigna.';
                 }
             }
 
-            // Guardar resultado
             state.results.push({
                 exerciseTitle: exercise.title,
                 instance: state.currentInstanceIndex + 1,
@@ -678,7 +738,6 @@ Respuesta del alumno: "${text}"`;
                 score: numericScore
             });
 
-            // Actualizar la caja de feedback
             feedbackBox.className = 'feedback-message';
             if (status === 'Logrado') feedbackBox.classList.add('feedback-logrado');
             else if (status === 'Parcialmente logrado') feedbackBox.classList.add('feedback-parcial');
@@ -692,17 +751,14 @@ Respuesta del alumno: "${text}"`;
             btnNext.style.display = 'block';
         });
 
-        btnNext.addEventListener('click', () => {
-            const currentExercise = exercises[state.currentExerciseIndex];
-            
-            // Avanzar instancia o ejercicio
-            if (state.currentInstanceIndex < currentExercise.instances.length - 1) {
+        btnNext.addEventListener('click', async () => {
+            if (state.currentInstanceIndex < state.instancesPerExercise - 1) {
                 state.currentInstanceIndex++;
-                loadInstance();
+                await loadInstance();
             } else if (state.currentExerciseIndex < exercises.length - 1) {
                 state.currentExerciseIndex++;
                 state.currentInstanceIndex = 0;
-                loadInstance();
+                await loadInstance();
             } else {
                 finishSession();
             }
@@ -712,7 +768,6 @@ Respuesta del alumno: "${text}"`;
         const finishSession = async () => {
             switchScreen(screenExercise, screenEnd);
             
-            // Calcular calificación promedio
             const totalScore = state.results.reduce((acc, curr) => acc + curr.score, 0);
             const avgScore = totalScore / state.results.length;
             
@@ -721,7 +776,6 @@ Respuesta del alumno: "${text}"`;
             else if (avgScore >= 1.5) calificacionFinal = 'Parcialmente logrado';
             else calificacionFinal = 'No logrado';
 
-            // Recopilar errores para el informe
             const erroresDetectados = state.results
                 .filter(r => r.status !== 'Logrado')
                 .map(r => `Falla en ${r.exerciseTitle} (Instancia ${r.instance})`)
@@ -738,7 +792,6 @@ Respuesta del alumno: "${text}"`;
             const URL_APPS_SCRIPT = 'https://script.google.com/macros/s/AKfycbyhWLc41wxXH6ygul9ztPFOdL4MSGXuKkUVzR9T22gPK92EGKUpsScsHP53yXYbVbjY/exec';
 
             try {
-                // Requerimiento estricto: fetch asíncrono, modo no-cors, application/json y payload exacto.
                 await fetch(URL_APPS_SCRIPT, {
                     method: 'POST',
                     mode: 'no-cors',
@@ -748,7 +801,6 @@ Respuesta del alumno: "${text}"`;
                     body: JSON.stringify(payload)
                 });
                 
-                // Al estar en no-cors, la respuesta será opaca, por lo que asumimos éxito si no lanza error de red.
                 document.getElementById('loading-indicator').style.display = 'none';
                 document.getElementById('final-message').style.display = 'block';
 
