@@ -341,11 +341,11 @@
             "la inteligencia artificial", "mitología griega", "ecología y reciclaje", 
             "descubrimientos médicos", "arquitectura moderna", "la fauna patagónica", 
             "la historia del cine", "la invención de la imprenta", "el ciclo del agua",
-            "las antiguas civilizaciones", "la música clásica", "los deportes olímpicos"
+            "las antiguas civilizaciones", "la música clásica", "los deportes olímpicos",
+            "el cuerpo humano", "la geografía antártica", "los dinosaurios", "la literatura gauchesca"
         ];
 
         // --- Estructura de Datos y Definiciones Generativas ---
-        // Se ha renovado completamente la matriz estática eliminando los ejemplos redundantes.
         const exercises = [
             {
                 title: "Ejercicio 1: Cohesión",
@@ -452,8 +452,10 @@
             },
             currentExerciseIndex: 0,
             currentInstanceIndex: 0,
-            instancesPerExercise: 2, // Requerimiento: 2 instancias por ejercicio
+            instancesPerExercise: 2, 
             currentDynamicInstance: null,
+            fallbackCounter: 0, // Garantiza rotación absoluta en caso de fallo de red
+            usedTopics: [],     // Memoria de tópicos para evitar repeticiones semánticas
             results: []
         };
 
@@ -484,7 +486,6 @@
         const apiKey = "";
         const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
-        // Limpieza de parámetros problemáticos: Se elimina temperature del generationConfig para evitar rechazos del servidor.
         async function callGemini(systemInstruction, userPrompt, responseSchema = null) {
             const payload = {
                 contents: [{ parts: [{ text: userPrompt }] }],
@@ -526,12 +527,21 @@
 
         // --- Función Generadora de Ejercicios ---
         async function fetchDynamicInstance(exerciseDef) {
-            const temaSeleccionado = temasGeneracion[Math.floor(Math.random() * temasGeneracion.length)];
+            // Filtrado estricto para no repetir temas en la sesión
+            let temasDisponibles = temasGeneracion.filter(t => !state.usedTopics.includes(t));
+            if (temasDisponibles.length === 0) {
+                state.usedTopics = []; // Reinicio si se agotan
+                temasDisponibles = temasGeneracion;
+            }
+            
+            const temaSeleccionado = temasDisponibles[Math.floor(Math.random() * temasDisponibles.length)];
+            state.usedTopics.push(temaSeleccionado); // Registrar tema usado
+            
             const semillaAleatoria = Date.now();
             
             const systemPrompt = "Sos un profesor de lengua y literatura de secundaria en Argentina. Tu tarea técnica es generar datos para un ejercicio de reescritura en estricto formato JSON.";
             const userPrompt = `Creá un ejercicio original para la siguiente consigna: "${exerciseDef.instruction}".
-            Tema semántico obligatorio (el texto debe tratar sobre esto): ${temaSeleccionado}.
+            Tema semántico obligatorio (el texto debe tratar rigurosamente sobre esto): ${temaSeleccionado}.
             Semilla de variabilidad algorítmica: ${semillaAleatoria}.
             Regla de generación estricta: ${exerciseDef.promptRule}
             PROHIBICIÓN ABSOLUTA: No utilices bajo ningún concepto ejemplos clásicos que involucren perros, vecinos, bibliotecas, autos o escuelas.
@@ -623,11 +633,12 @@
 
             let instanceData = await fetchDynamicInstance(exercise);
             
-            // Garantía de rotación estática si la API falla: No se usa aleatoriedad pura, sino secuencialidad.
+            // Garantía de rotación estática global: Si la API falla repetidas veces, el contador asegura avance secuencial sin importar el ejercicio.
             if (!instanceData) {
                 const pool = exercise.staticInstances;
-                const poolIndex = state.currentInstanceIndex % pool.length;
+                const poolIndex = state.fallbackCounter % pool.length;
                 instanceData = pool[poolIndex];
+                state.fallbackCounter++; // Incremento global
             }
 
             state.currentDynamicInstance = instanceData;
@@ -693,10 +704,11 @@ Redactá una pista técnica (máximo 2 oraciones en voseo rioplatense) indicando
             btnSubmit.textContent = '🧠 Ejecutando evaluación...';
             btnHint.style.display = 'none';
 
+            // El prompt se ajusta para contemplar reestructuraciones sintácticas válidas (ej: unificar oraciones).
             const systemPrompt = `Sos un algoritmo de evaluación sintáctica estricta para estudiantes de secundaria en Argentina.
 Reglas innegociables para puntuar:
-- Logrado (3): El texto no tiene errores. Obligatoriamente tiene punto final, las comas necesarias están en los lugares exactos, y las mayúsculas son correctas.
-- Parcialmente logrado (2): La reformulación principal está hecha, pero hay falencias ortotipográficas (falta el punto final, falta cerrar una coma explicativa, error de mayúscula).
+- Logrado (3): El texto no tiene errores. La puntuación DEBE SER coherente con la estructura elegida por el alumno (ejemplo crítico: si el alumno unió dos oraciones originales simples en una sola oración compuesta usando un nexo como 'y', ES CORRECTO que haya un solo punto al final; no exijas un punto intermedio). Mayúsculas y ortografía deben ser impecables.
+- Parcialmente logrado (2): La reformulación principal está hecha, pero hay falencias ortotipográficas claras (ausencia total del punto final, comas mal aplicadas en enumeraciones/aposiciones, error evidente de mayúscula).
 - No logrado (1): No cumple la consigna o agrava los errores.`;
             
             const userPrompt = `Verificá la respuesta del estudiante.
@@ -705,17 +717,17 @@ Texto original: "${instance.original}"
 Respuesta esperada aproximada: ${JSON.stringify(instance.expected)}
 Texto ingresado por el estudiante: "${text}"`;
 
+            // El esquema JSON ya no pregunta si "tiene punto" de forma mecánica, sino si la puntuación es correcta para la sintaxis empleada.
             const schema = {
                 type: "OBJECT",
                 properties: {
-                    tiene_punto_final: { type: "BOOLEAN", description: "¿El texto del estudiante termina con punto final?" },
-                    tiene_comas_correctas: { type: "BOOLEAN", description: "¿Se utilizaron exactamente las comas requeridas según normativa?" },
-                    tiene_mayusculas_correctas: { type: "BOOLEAN", description: "¿Las mayúsculas iniciales y en nombres propios son precisas?" },
+                    analisis_sintactico: { type: "STRING", description: "Análisis técnico de cómo el estudiante reestructuró el texto y si la puntuación empleada es coherente con esa nueva estructura." },
+                    puntuacion_ortografia_perfectas: { type: "BOOLEAN", description: "¿El uso de mayúsculas, ortografía y signos de puntuación (según la estructura que armó el estudiante) es totalmente riguroso y sin errores?" },
                     status: { type: "STRING", description: "Estrictamente: 'Logrado', 'Parcialmente logrado', 'No logrado'." },
-                    feedback: { type: "STRING", description: "Devolución en voseo, académica y directa. Si falta un punto o una coma, indicalo explícitamente y remarcá su obligatoriedad." },
+                    feedback: { type: "STRING", description: "Devolución en voseo, académica y directa. Centrada en el error específico si lo hay." },
                     score: { type: "INTEGER", description: "3, 2, o 1 según corresponda." }
                 },
-                required: ["tiene_punto_final", "tiene_comas_correctas", "tiene_mayusculas_correctas", "status", "feedback", "score"]
+                required: ["analisis_sintactico", "puntuacion_ortografia_perfectas", "status", "feedback", "score"]
             };
 
             let status = '';
@@ -730,10 +742,11 @@ Texto ingresado por el estudiante: "${text}"`;
                 feedbackText = result.feedback;
                 numericScore = result.score;
                 
-                if (status === 'Logrado' && (!result.tiene_punto_final || !result.tiene_comas_correctas || !result.tiene_mayusculas_correctas)) {
+                // Intervención de control: degrada el puntaje si la IA detectó fallas ortotipográficas pero intentó ser complaciente.
+                if (status === 'Logrado' && !result.puntuacion_ortografia_perfectas) {
                     status = 'Parcialmente logrado';
                     numericScore = 2;
-                    feedbackText = "Aclaración técnica: " + feedbackText + " Recordá que para una evaluación óptima, no deben omitirse elementos de puntuación mínimos como el punto final o las comas.";
+                    feedbackText = "Aclaración técnica: " + feedbackText + " Recordá revisar minuciosamente la puntuación y las mayúsculas en la nueva estructura que armaste.";
                 }
 
             } catch (error) {
