@@ -272,7 +272,7 @@
         <!-- Pantalla de Ejercicios -->
         <div id="screen-exercise" class="screen">
             <div class="exercise-header">
-                <span class="progress-indicator" id="progress-text">Ejercicio 1 de 3 | Instancia 1 de 3</span>
+                <span class="progress-indicator" id="progress-text">Ejercicio 1 de 3 | Instancia 1 de 2</span>
                 <h2 id="exercise-title">Título del Ejercicio</h2>
             </div>
             
@@ -345,6 +345,7 @@
         ];
 
         // --- Estructura de Datos y Definiciones Generativas ---
+        // Se ha renovado completamente la matriz estática eliminando los ejemplos redundantes.
         const exercises = [
             {
                 title: "Ejercicio 1: Cohesión",
@@ -353,26 +354,28 @@
                 promptRule: "Generá un texto de dos oraciones breves (15-20 palabras en total) que repita de forma evidente e innecesaria el sujeto o un objeto directo, forzando al alumno a usar elipsis, pronombres o sinónimos. Estructura base: [Oración 1]. [Oración 2 que repite elementos de la 1].",
                 staticInstances: [
                     {
-                        original: "El perro de mi vecino ladra mucho. El perro de mi vecino no me deja dormir en toda la noche.",
+                        original: "El intendente inauguró la plaza central. El intendente brindó un discurso muy largo.",
                         expected: [
-                            "El perro de mi vecino ladra mucho y no me deja dormir en toda la noche.",
-                            "El perro de mi vecino ladra mucho, no me deja dormir en toda la noche."
+                            "El intendente inauguró la plaza central y brindó un discurso muy largo.",
+                            "El intendente inauguró la plaza central. Luego, brindó un discurso muy largo."
                         ],
-                        hint: "Notá cómo la frase 'El perro de mi vecino' se repite. Intentá unir ambas oraciones."
+                        hint: "Notá cómo la frase 'El intendente' se repite. Intentá unir ambas oraciones u omitir la segunda mención."
                     },
                     {
-                        original: "La profesora explicó el tema. Los alumnos escucharon a la profesora con atención.",
+                        original: "El satélite orbita la Tierra. El satélite toma fotografías en alta resolución.",
                         expected: [
-                            "La profesora explicó el tema y los alumnos la escucharon con atención."
+                            "El satélite orbita la Tierra y toma fotografías en alta resolución.",
+                            "El satélite orbita la Tierra tomando fotografías en alta resolución."
                         ],
-                        hint: "Evitá repetir 'la profesora'."
+                        hint: "Evitá repetir 'El satélite'. Un conector copulativo puede servirte."
                     },
                     {
-                        original: "El museo tiene obras de arte muy antiguas. Las obras de arte atraen a muchos turistas.",
+                        original: "La música sonaba muy fuerte en el teatro. La música no dejaba escuchar a los actores.",
                         expected: [
-                            "El museo tiene obras de arte muy antiguas que atraen a muchos turistas."
+                            "La música sonaba muy fuerte en el teatro y no dejaba escuchar a los actores.",
+                            "La música sonaba muy fuerte en el teatro, lo que no dejaba escuchar a los actores."
                         ],
-                        hint: "Utilizá un pronombre relativo como 'que' o 'las cuales'."
+                        hint: "Reemplazá o eliminá la segunda mención de 'La música'."
                     }
                 ]
             },
@@ -383,25 +386,26 @@
                 promptRule: "Generá un texto breve (15-20 palabras) totalmente en minúsculas y sin un solo signo de puntuación (sin comas ni puntos). Debe incluir un nombre propio o lugar geográfico y requerir obligatoriamente el uso de comas (ya sea para enumerar elementos o para aclarar información sobre un sustantivo) y un punto intermedio separando dos ideas.",
                 staticInstances: [
                     {
-                        original: "mañana viajo a córdoba con mi hermano el pasaje salió muy caro",
+                        original: "el viernes viajamos a mendoza con mis padres el hotel es muy lindo",
                         expected: [
-                            "Mañana viajo a Córdoba con mi hermano. El pasaje salió muy caro."
+                            "El viernes viajamos a Mendoza con mis padres. El hotel es muy lindo.",
+                            "El viernes viajamos a Mendoza con mis padres; el hotel es muy lindo."
                         ],
-                        hint: "Recordá que toda oración inicia con mayúscula y separa ideas con punto."
+                        hint: "Toda oración inicia con mayúscula. 'Mendoza' es un lugar. Separar ideas distintas requiere un punto."
                     },
                     {
-                        original: "fui al mercado y compré peras manzanas bananas y uvas",
+                        original: "compramos harina huevos azúcar y leche en el almacén de mi barrio",
                         expected: [
-                            "Fui al mercado y compré peras, manzanas, bananas y uvas."
+                            "Compramos harina, huevos, azúcar y leche en el almacén de mi barrio."
                         ],
-                        hint: "Utilizá comas para separar los elementos de la enumeración."
+                        hint: "Utilizá comas para separar los elementos de esta enumeración."
                     },
                     {
-                        original: "martín que es médico atiende en ese hospital todos los días",
+                        original: "maría que es ingeniera civil dirige la construcción del puente",
                         expected: [
-                            "Martín, que es médico, atiende en ese hospital todos los días."
+                            "María, que es ingeniera civil, dirige la construcción del puente."
                         ],
-                        hint: "Encerrá entre comas la información aclaratoria sobre Martín."
+                        hint: "Encerrá entre comas la información aclaratoria sobre María."
                     }
                 ]
             },
@@ -412,25 +416,28 @@
                 promptRule: "Generá un texto breve (15-25 palabras) en minúsculas y sin signos de puntuación. Además, debe contener una repetición evidente de un sujeto o sustantivo, requiriendo corrección de cohesión y reposición de signos de puntuación de forma simultánea.",
                 staticInstances: [
                     {
-                        original: "el sol brillaba con fuerza el sol calentaba la arena la arena quemaba los pies",
+                        original: "el viento soplaba fuerte el viento movía los árboles los árboles parecían caerse",
                         expected: [
-                            "El sol brillaba con fuerza y calentaba la arena, que quemaba los pies."
+                            "El viento soplaba fuerte y movía los árboles, que parecían caerse.",
+                            "El viento soplaba fuerte y movía los árboles. Estos parecían caerse."
                         ],
-                        hint: "Evitá repetir 'el sol' y 'la arena'. Establecé pausas con comas o puntos."
+                        hint: "Evitá repetir 'el viento' y 'los árboles'. Establecé pausas con comas o puntos."
                     },
                     {
-                        original: "los estudiantes leyeron el libro los estudiantes debatieron sobre el libro en clase",
+                        original: "los investigadores analizaron la muestra los investigadores publicaron los resultados en europa",
                         expected: [
-                            "Los estudiantes leyeron el libro y debatieron sobre él en clase."
+                            "Los investigadores analizaron la muestra y publicaron los resultados en Europa.",
+                            "Los investigadores analizaron la muestra. Luego, publicaron los resultados en Europa."
                         ],
-                        hint: "Uní las ideas omitiendo el segundo sujeto y usando un pronombre para el libro."
+                        hint: "Uní las ideas omitiendo el segundo sujeto y recordá la mayúscula en continentes."
                     },
                     {
-                        original: "el río paraná es muy caudaloso el río paraná atraviesa varias provincias",
+                        original: "el volcán lanín es imponente el volcán lanín se encuentra en neuquén",
                         expected: [
-                            "El río Paraná es muy caudaloso y atraviesa varias provincias."
+                            "El volcán Lanín es imponente y se encuentra en Neuquén.",
+                            "El volcán Lanín es imponente; se encuentra en Neuquén."
                         ],
-                        hint: "Recordá las mayúsculas en nombres propios y evitá la repetición del sujeto."
+                        hint: "Recordá las mayúsculas en nombres propios y lugares, y evitá la repetición del volcán."
                     }
                 ]
             }
@@ -445,7 +452,7 @@
             },
             currentExerciseIndex: 0,
             currentInstanceIndex: 0,
-            instancesPerExercise: 2,
+            instancesPerExercise: 2, // Requerimiento: 2 instancias por ejercicio
             currentDynamicInstance: null,
             results: []
         };
@@ -477,7 +484,8 @@
         const apiKey = "";
         const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
-        async function callGemini(systemInstruction, userPrompt, responseSchema = null, temperature = 0.7) {
+        // Limpieza de parámetros problemáticos: Se elimina temperature del generationConfig para evitar rechazos del servidor.
+        async function callGemini(systemInstruction, userPrompt, responseSchema = null) {
             const payload = {
                 contents: [{ parts: [{ text: userPrompt }] }],
                 systemInstruction: { parts: [{ text: systemInstruction }] }
@@ -486,11 +494,8 @@
             if (responseSchema) {
                 payload.generationConfig = {
                     responseMimeType: "application/json",
-                    responseSchema: responseSchema,
-                    temperature: temperature
+                    responseSchema: responseSchema
                 };
-            } else {
-                payload.generationConfig = { temperature: temperature };
             }
 
             const options = {
@@ -506,10 +511,13 @@
                     if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
                     const data = await response.json();
                     const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                    if (!text) throw new Error("No se devolvió texto desde Gemini");
+                    if (!text) throw new Error("No se devolvió texto válido desde la API.");
                     return text;
                 } catch (error) {
-                    if (i === 4) throw error;
+                    if (i === 4) {
+                        console.error("Fallo definitivo en la API después de 5 intentos:", error);
+                        throw error;
+                    }
                     await new Promise(res => setTimeout(res, delay));
                     delay *= 2;
                 }
@@ -523,9 +531,10 @@
             
             const systemPrompt = "Sos un profesor de lengua y literatura de secundaria en Argentina. Tu tarea técnica es generar datos para un ejercicio de reescritura en estricto formato JSON.";
             const userPrompt = `Creá un ejercicio original para la siguiente consigna: "${exerciseDef.instruction}".
-            Tema semántico obligatorio para estructurar el texto: ${temaSeleccionado}.
+            Tema semántico obligatorio (el texto debe tratar sobre esto): ${temaSeleccionado}.
             Semilla de variabilidad algorítmica: ${semillaAleatoria}.
             Regla de generación estricta: ${exerciseDef.promptRule}
+            PROHIBICIÓN ABSOLUTA: No utilices bajo ningún concepto ejemplos clásicos que involucren perros, vecinos, bibliotecas, autos o escuelas.
             Asegurate de que el texto original contenga los errores solicitados. Generá 2 opciones correctas posibles.`;
 
             const schema = {
@@ -539,10 +548,10 @@
             };
 
             try {
-                const responseText = await callGemini(systemPrompt, userPrompt, schema, 1.2);
+                const responseText = await callGemini(systemPrompt, userPrompt, schema);
                 return JSON.parse(responseText);
             } catch (error) {
-                console.error("Fallo generativo. Se recurrirá a la instancia estática.", error);
+                console.error("Fallo generativo. Se recurrirá a la instancia estática estructurada.", error);
                 return null;
             }
         }
@@ -614,9 +623,11 @@
 
             let instanceData = await fetchDynamicInstance(exercise);
             
+            // Garantía de rotación estática si la API falla: No se usa aleatoriedad pura, sino secuencialidad.
             if (!instanceData) {
                 const pool = exercise.staticInstances;
-                instanceData = pool[Math.floor(Math.random() * pool.length)];
+                const poolIndex = state.currentInstanceIndex % pool.length;
+                instanceData = pool[poolIndex];
             }
 
             state.currentDynamicInstance = instanceData;
@@ -660,10 +671,10 @@ Progreso del alumno: "${text || '(Aún no escribió nada)'}"
 Redactá una pista técnica (máximo 2 oraciones en voseo rioplatense) indicando qué regla sintáctica u ortográfica debe aplicar.`;
 
             try {
-                const hint = await callGemini(systemPrompt, userPrompt, null, 0.7);
+                const hint = await callGemini(systemPrompt, userPrompt);
                 hintBox.textContent = hint;
             } catch (error) {
-                console.error(error);
+                console.error("Fallo al solicitar pista:", error);
                 hintBox.textContent = instance.hint || "Leé detenidamente la consigna y verificá la puntuación del ejemplo.";
             } finally {
                 btnHint.textContent = '✨ Solicitar pista pedagógica';
@@ -694,7 +705,6 @@ Texto original: "${instance.original}"
 Respuesta esperada aproximada: ${JSON.stringify(instance.expected)}
 Texto ingresado por el estudiante: "${text}"`;
 
-            // El esquema exige una evaluación booleana componente por componente para forzar el escrutinio técnico.
             const schema = {
                 type: "OBJECT",
                 properties: {
@@ -713,19 +723,16 @@ Texto ingresado por el estudiante: "${text}"`;
             let numericScore = 0;
 
             try {
-                const resultText = await callGemini(systemPrompt, userPrompt, schema, 0.1);
+                const resultText = await callGemini(systemPrompt, userPrompt, schema);
                 const result = JSON.parse(resultText);
                 
                 status = result.status;
                 feedbackText = result.feedback;
                 numericScore = result.score;
                 
-                // Intervención de control algorítmico: Anulación de la complacencia del LLM.
-                // Si el modelo declara "Logrado" pero marcó falso en requerimientos de puntuación, se degrada forzosamente.
                 if (status === 'Logrado' && (!result.tiene_punto_final || !result.tiene_comas_correctas || !result.tiene_mayusculas_correctas)) {
                     status = 'Parcialmente logrado';
                     numericScore = 2;
-                    // Se anexa una advertencia sistémica a la devolución generada.
                     feedbackText = "Aclaración técnica: " + feedbackText + " Recordá que para una evaluación óptima, no deben omitirse elementos de puntuación mínimos como el punto final o las comas.";
                 }
 
@@ -738,7 +745,7 @@ Texto ingresado por el estudiante: "${text}"`;
                     if (sim > maxSimilarity) maxSimilarity = sim;
                 });
 
-                if (maxSimilarity >= 98) { // Rigurosidad máxima en la comparación de caracteres
+                if (maxSimilarity >= 98) {
                     status = 'Logrado';
                     numericScore = 3;
                     feedbackText = 'Resolución técnicamente correcta. Sintaxis y puntuación adecuadas.';
